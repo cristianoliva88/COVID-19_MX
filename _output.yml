@@ -1,5 +1,6 @@
 bookdown::gitbook:
   css: style.css
+  highlight: tango
   number_sections: no
   config:
     toc:

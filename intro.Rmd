@@ -4,12 +4,14 @@
 x <- "NACIONAL"
 
 cat(paste("##", "Gráfica de Nuevos Casos Positivos por Fecha de Ingreso", sep = " ", "\n\n"))
-htmltools::tagList( ggplotly(plot.posnew[[x]], tooltip = "text") )
+htmltools::tagList( ggplotly(plot.posnew[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) )
 
 cat("\n\n")
 
 cat(paste("##", "Gráfica de Total Casos Positivos por Fecha de Ingreso", sep = " ", "\n\n"))
-htmltools::tagList( ggplotly(plot.postotal[[x]], tooltip = "text") )
+htmltools::tagList( ggplotly(plot.postotal[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) )
 
 cat("\n\n")
 
@@ -29,10 +31,12 @@ for(x in grp_names_state){
   cat(paste("#", x, sep = " ", "\n\n"))
   
   cat("## Gráfica de Nuevos Casos Positivos por Fecha de Ingreso \n\n")
-  print(htmltools::tagList( ggplotly(plot.posnew[[x]], tooltip = "text") ))
+  print(htmltools::tagList( ggplotly(plot.posnew[[x]], tooltip = "text",
+                                     dynamicTicks = TRUE) ))
   
   cat("## Gráfica de Total Casos Positivos por Fecha de Ingreso \n\n")
-  print(htmltools::tagList( ggplotly(plot.postotal[[x]], tooltip = "text") ))
+  print(htmltools::tagList( ggplotly(plot.postotal[[x]], tooltip = "text",
+                                     dynamicTicks = TRUE) ))
   
   cat("\n\n")
   

@@ -20,7 +20,7 @@ library(readxl)
 library(knitr)
 library(plotly)
 
-knitr::opts_chunk$set(fig.align = "center", warning = FALSE, message = FALSE,
+knitr::opts_chunk$set(fig.margin = TRUE, warning = FALSE, message = FALSE,
                       echo = FALSE, results = "asis", purl = FALSE)
 
 #### FUNCTION TO REPLACE VALUES

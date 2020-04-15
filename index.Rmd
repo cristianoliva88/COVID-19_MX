@@ -1,0 +1,187 @@
+--- 
+title: "Análisis del COVID-19 en México"
+author: "Cristian Oliva Avilés"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+output: bookdown::gitbook
+documentclass: book
+bibliography: [book.bib, packages.bib]
+biblio-style: apalike
+link-citations: yes
+graphics: yes
+#github-repo: rstudio/bookdown-demo
+#description: "Analisis COVID"
+---
+
+```{r loadlibraries, include = FALSE}
+library(dplyr)
+library(tidyverse)
+library(readxl)
+library(knitr)
+library(plotly)
+
+knitr::opts_chunk$set(fig.align = "center", warning = FALSE, message = FALSE,
+                      echo = FALSE, results = "asis", purl = FALSE)
+
+#### FUNCTION TO REPLACE VALUES
+vrepl <- function(x, list, values){
+        out <- x
+        j <- 1
+          for(i in list){
+            out <- replace(out, x==i, values[j])
+            j <- j+1
+          }
+        out
+      }
+
+```
+
+# Description
+Hola pepu y engo
+
+```{r readcleandata}
+##### FIRST, READ DATA FILE WITH ALL CASES
+dta <- read_csv("Data/200414COVID19MEXICO.csv")
+
+## Create variable to define MUNICIPIOS
+dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
+                                                  `ENTIDAD_RES`,
+                                                  sep=".") )
+
+
+filenm.catalogs <- "Data/Catalogos_0412.xlsx"
+sheetnames <- excel_sheets(filenm.catalogs)
+
+## Replace values of ORIGEN
+dta.origen <- read_excel(filenm.catalogs, "Catálogo ORIGEN")
+dta <- dta %>% mutate("ORIGEN" = vrepl(`ORIGEN`, dta.origen$CLAVE,
+                                       dta.origen$DESCRIPCIÓN) )
+
+## Replace values of SECTOR
+dta.sector <- read_excel(filenm.catalogs, "Catálogo SECTOR")
+dta <- dta %>% mutate("SECTOR" = vrepl(`SECTOR`, dta.sector$CLAVE,
+                                       dta.sector$DESCRIPCIÓN) )
+
+## Replace values of SEXO
+dta.sexo <- read_excel(filenm.catalogs, "Catálogo SEXO")
+dta <- dta %>% mutate("SEXO" = vrepl(`SEXO`, dta.sexo$CLAVE,
+                                       dta.sexo$DESCRIPCIÓN) )
+
+## Replace values of TIPO_PACIENTE
+dta.tipo_paciente <- read_excel(filenm.catalogs, "Catálogo TIPO_PACIENTE")
+dta <- dta %>% mutate("TIPO_PACIENTE" = vrepl(`TIPO_PACIENTE`,
+                                        dta.tipo_paciente$CLAVE,
+                                        dta.tipo_paciente$DESCRIPCIÓN) )
+
+## Replace values of NACIONALIDAD
+dta.nacionalidad <- read_excel(filenm.catalogs, "Catálogo NACIONALIDAD")
+dta <- dta %>% mutate("NACIONALIDAD" = vrepl(`NACIONALIDAD`,
+                                        dta.nacionalidad$CLAVE,
+                                        dta.nacionalidad$DESCRIPCIÓN) )
+
+## Replace values of RESULTADO
+dta.resultado <- read_excel(filenm.catalogs, "Catálogo RESULTADO")
+dta <- dta %>% mutate("RESULTADO" = vrepl(`RESULTADO`,
+                                        dta.resultado$CLAVE,
+                                        dta.resultado$DESCRIPCIÓN) )
+
+## Replace values of ENTIDADES
+dta.entidades <- read_excel(filenm.catalogs, "Catálogo de ENTIDADES")
+for(x in c("ENTIDAD_UM","ENTIDAD_NAC", "ENTIDAD_RES")){
+  dta[[x]] <- vrepl(dta[[x]], dta.entidades$CLAVE_ENTIDAD,
+                                    dta.entidades$ENTIDAD_FEDERATIVA) 
+}
+
+## Replace values of MUNICIPIO_RES
+dta.municipio_res <- read_excel(filenm.catalogs, "Catálogo MUNICIPIOS")
+dta.municipio_res <- dta.municipio_res %>% 
+                      mutate("ID_MUNICIPIO_RES" = paste(`CLAVE_MUNICIPIO`,
+                                                  `CLAVE_ENTIDAD`, sep = "."))
+x<- "MUNICIPIO_RES"
+dta[[x]] <- vrepl(dta[[x]], dta.municipio_res$ID_MUNICIPIO_RES,
+                                  dta.municipio_res$MUNICIPIO) 
+
+## Replace values of SI_NO variables
+dta.si_no <- read_excel(filenm.catalogs, "Catálogo SI_NO")
+for(x in c("INTUBADO", "NEUMONIA", "EMBARAZO", "HABLA_LENGUA_INDI",
+           "DIABETES", "EPOC", "ASMA", "INMUSUPR", "HIPERTENSION",
+           "OTRA_CON", "CARDIOVASCULAR", "OBESIDAD", "RENAL_CRONICA",
+           "TABAQUISMO", "OTRO_CASO")){
+  dta[[x]] <- vrepl(dta[[x]], dta.si_no$CLAVE,
+                                    dta.si_no$DESCRIPCIÓN) 
+}
+
+
+
+#### CREATE GROUPS FOR WHICH SIMILAR ANALYSIS
+#### WILL BE PERFORMED
+dta1 <- dta %>% mutate(grp = `ENTIDAD_RES`)
+dta0 <- dta1 %>% mutate(grp = "NACIONAL") 
+dta_comb <- rbind(dta1, dta0)
+dta_comb[["grp"]] <- as.factor(dta_comb[["grp"]])
+
+## Split by grp
+dta_split <- with(dta_comb, split(dta_comb, grp, drop = TRUE))
+grp_names <- names(dta_split)
+```
+
+```{r analysisbygrp}
+#### ANALYSIS BY GRP
+date.first <- head(sort(unique(dta$FECHA_INGRESO)),1)
+date.last <- tail(sort(unique(dta$FECHA_INGRESO)),1)
+dta.blank <- data.frame("FECHA_INGRESO" = seq(date.first, date.last, 1))
+
+tbl.resultado <- NULL
+plot.posnew <- NULL
+plot.postotal <- NULL
+
+for(x in grp_names){
+  dtagrp <- dta_split[[x]]
+  
+  ans.tmp <- dtagrp %>% group_by(`FECHA_INGRESO`) %>%
+      summarise("Nuevos Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
+                "Nuevos No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
+                "Nuevos Pendientes" = sum(`RESULTADO` == "Resultado pendiente"),
+                "Nuevos Decesos" = sum(!is.na(`FECHA_DEF`))) %>%
+      mutate("Total Positivo" = cumsum(`Nuevos Positivo`),
+              "Total No Positivo" = cumsum(`Nuevos No Positivo`),
+              "Total Pendientes" = cumsum(`Nuevos Pendientes`),
+              "Total Decesos" = cumsum(`Nuevos Decesos`))
+  ans.tmp <- left_join(dta.blank, ans.tmp, by="FECHA_INGRESO")
+  ans.tmp[is.na(ans.tmp)] <- 0
+  tbl.resultado[[x]] <- ans.tmp
+  
+  
+  ## Plot of new positive cases
+  plot.posnew[[x]] <- tbl.resultado[[x]] %>%
+                        ggplot(aes(x = `FECHA_INGRESO`, y = `Nuevos Positivo`)) +
+                        geom_line(color = "darkblue") + 
+                        geom_point(aes(text = paste(`Nuevos Positivo`, 'casos en',
+                                format(`FECHA_INGRESO`, "%d/%m"))), 
+                                color = "darkblue") + 
+                        theme_bw() +
+                        theme(axis.text.x = element_text(size=8)) +
+                        scale_y_continuous(n.breaks = 6) +
+                        scale_x_date(date_labels = "%d/%m", date_breaks = "7 day") +
+                        xlab("Fecha de Ingreso") + ylab("Nuevos Casos Positivos")
+  
+  ## Plot of total positive cases
+    plot.postotal[[x]] <- tbl.resultado[[x]] %>%
+                        ggplot(aes(x = `FECHA_INGRESO`, y = `Total Positivo`)) +
+                        geom_line(color = "darkblue") + 
+                        geom_point(aes(text = paste(`Total Positivo`, 'casos en',
+                                format(`FECHA_INGRESO`, "%d/%m"))), 
+                                color = "darkblue") + 
+                        theme_bw() +
+                        theme(axis.text.x = element_text(size=8)) +
+                        scale_y_continuous(n.breaks = 6) +
+                        scale_x_date(date_labels = "%d/%m", date_breaks = "7 day") +
+                        xlab("Fecha de Ingreso") + ylab("Total Casos Positivos")
+                        
+                        
+  
+}
+
+
+```
+

@@ -1,0 +1,35 @@
+
+# NACIONAL {#nacional}
+
+```{r national}
+ggplotly(plot.posnew$NACIONAL, tooltip = "text")
+ggplotly(plot.postotal$NACIONAL, tooltip = "text")
+
+
+#tbl.resultado$NACIONAL %>% 
+#    knitr::kable(digits = 0,
+#                 row.names = F,
+#                 align = "c",
+#                 caption = "Prueba",
+#                 longtable = TRUE)
+
+```
+
+```{r state, results = 'asis'}
+grp_names_state <- grp_names[grp_names != "NACIONAL"]
+for(x in grp_names_state){
+  
+  cat(paste("#", x, sep = " ", "\n\n"))
+  
+  cat("## Gráfica de Casos Nuevos Positivos por Fecha de Ingreso \n\n")
+  print(htmltools::tagList( ggplotly(plot.posnew[[x]], tooltip = "text")) )
+  
+  cat("## Gráfica de Total Nuevos Positivos por Fecha de Ingreso \n\n")
+  print(htmltools::tagList( ggplotly(plot.postotal[[x]], tooltip = "text")) )
+  
+  cat("\n\n")
+  
+}
+```
+
+

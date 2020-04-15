@@ -1,0 +1,10 @@
+bookdown::gitbook:
+  css: style.css
+  number_sections: no
+  config:
+    toc:
+      collapse: section
+      scroll_highlight: yes
+      before: |
+        <li><a href="index.html"> Análisis del COVID-19 en México </a></li>
+ 

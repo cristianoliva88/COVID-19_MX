@@ -1,10 +1,19 @@
 
-# NACIONAL {#nacional}
-
+# NACIONAL
 ```{r national}
-ggplotly(plot.posnew$NACIONAL, tooltip = "text")
-ggplotly(plot.postotal$NACIONAL, tooltip = "text")
+x <- "NACIONAL"
 
+cat(paste("##", "Casos caca", sep = " ", "\n\n"))
+
+ggplotly(plot.posnew[[x]], tooltip = "text")
+
+cat("\n\n")
+
+cat(paste("##", "Casos pelos", sep = " ", "\n\n"))
+
+ggplotly(plot.postotal[[x]], tooltip = "text")
+
+cat("\n\n")
 
 #tbl.resultado$NACIONAL %>% 
 #    knitr::kable(digits = 0,

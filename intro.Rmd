@@ -3,15 +3,13 @@
 ```{r national}
 x <- "NACIONAL"
 
-cat(paste("##", "Casos caca", sep = " ", "\n\n"))
-
-ggplotly(plot.posnew[[x]], tooltip = "text")
+cat(paste("##", "Gráfica de Nuevos Casos Positivos por Fecha de Ingreso", sep = " ", "\n\n"))
+htmltools::tagList( ggplotly(plot.posnew[[x]], tooltip = "text") )
 
 cat("\n\n")
 
-cat(paste("##", "Casos pelos", sep = " ", "\n\n"))
-
-ggplotly(plot.postotal[[x]], tooltip = "text")
+cat(paste("##", "Gráfica de Total Casos Positivos por Fecha de Ingreso", sep = " ", "\n\n"))
+htmltools::tagList( ggplotly(plot.postotal[[x]], tooltip = "text") )
 
 cat("\n\n")
 
@@ -30,11 +28,11 @@ for(x in grp_names_state){
   
   cat(paste("#", x, sep = " ", "\n\n"))
   
-  cat("## Gráfica de Casos Nuevos Positivos por Fecha de Ingreso \n\n")
-  print(htmltools::tagList( ggplotly(plot.posnew[[x]], tooltip = "text")) )
+  cat("## Gráfica de Nuevos Casos Positivos por Fecha de Ingreso \n\n")
+  print(htmltools::tagList( ggplotly(plot.posnew[[x]], tooltip = "text") ))
   
-  cat("## Gráfica de Total Nuevos Positivos por Fecha de Ingreso \n\n")
-  print(htmltools::tagList( ggplotly(plot.postotal[[x]], tooltip = "text")) )
+  cat("## Gráfica de Total Casos Positivos por Fecha de Ingreso \n\n")
+  print(htmltools::tagList( ggplotly(plot.postotal[[x]], tooltip = "text") ))
   
   cat("\n\n")
   

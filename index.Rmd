@@ -36,8 +36,10 @@ vrepl <- function(x, list, values){
 
 ```
 
-# Description
-Hola pepu y engo
+# Descripción 
+
+En este sitio web encontrarás un análisis del COVID-19 en México.
+
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES

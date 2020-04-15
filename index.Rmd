@@ -162,7 +162,7 @@ for(x in grp_names){
                                 format(`FECHA_INGRESO`, "%d/%m"))), 
                                 color = "darkblue") + 
                         theme_bw() +
-                        theme(axis.text.x = element_text(size=6)) +
+                        #theme(axis.text.x = element_text(size=6)) +
                         scale_y_continuous(n.breaks = 6) +
                         scale_x_date(date_labels = "%d/%m", date_breaks = "7 day") +
                         xlab("Fecha de Ingreso") + ylab("Nuevos Casos Positivos")

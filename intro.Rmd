@@ -1,7 +1,7 @@
 
-# NACIONAL
+# Nacional
 ```{r national}
-x <- "NACIONAL"
+x <- "Nacional"
 
 cat(paste("##", "Gráfica de Nuevos Casos Positivos por Fecha de Ingreso", sep = " ", "\n\n"))
 htmltools::tagList( ggplotly(plot.posnew[[x]], tooltip = "text",
@@ -11,6 +11,18 @@ cat("\n\n")
 
 cat(paste("##", "Gráfica de Total Casos Positivos por Fecha de Ingreso", sep = " ", "\n\n"))
 htmltools::tagList( ggplotly(plot.postotal[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) )
+
+cat("\n\n")
+
+cat(paste("##", "Gráfica de Casos Sospechosos por Fecha de Ingreso", sep = " ", "\n\n"))
+htmltools::tagList( ggplotly(plot.sospnew[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) )
+
+cat("\n\n")
+
+cat(paste("##", "Gráfica de Total Casos Sospechosos por Fecha de Ingreso", sep = " ", "\n\n"))
+htmltools::tagList( ggplotly(plot.sosptotal[[x]], tooltip = "text",
                              dynamicTicks = TRUE) )
 
 cat("\n\n")
@@ -25,7 +37,7 @@ cat("\n\n")
 ```
 
 ```{r state, results = 'asis'}
-grp_names_state <- grp_names[grp_names != "NACIONAL"]
+grp_names_state <- grp_names[grp_names != "Nacional"]
 for(x in grp_names_state){
   
   cat(paste("#", x, sep = " ", "\n\n"))
@@ -37,6 +49,14 @@ for(x in grp_names_state){
   cat("## Gráfica de Total Casos Positivos por Fecha de Ingreso \n\n")
   print(htmltools::tagList( ggplotly(plot.postotal[[x]], tooltip = "text",
                                      dynamicTicks = TRUE) ))
+  
+  cat(paste("## Gráfica de Casos Sospechosos por Fecha de Ingreso \n\n"))
+  print(htmltools::tagList( ggplotly(plot.sospnew[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) ))
+  
+  cat(paste("## Gráfica de Total Casos Sospechosos por Fecha de Ingreso \n\n"))
+  print(htmltools::tagList( ggplotly(plot.sosptotal[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) ))
   
   cat("\n\n")
   

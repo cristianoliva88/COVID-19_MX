@@ -1,7 +1,8 @@
 --- 
 title: "Análisis del COVID-19 en México"
-author: "Cristian Oliva Avilés"
-date: "`r Sys.Date()`"
+author: |
+  <a href=http://cristianoliva88.github.io/website> Cristian Oliva Avilés </a>
+date: "Última actualización: `r format(Sys.Date(), '%b %d %Y')`"
 site: bookdown::bookdown_site
 output: bookdown::gitbook
 documentclass: book
@@ -20,6 +21,7 @@ library(tidyverse)
 library(readxl)
 library(knitr)
 library(plotly)
+library(stringr)
 
 knitr::opts_chunk$set(fig.align = "center", warning = FALSE, 
                       message = FALSE, echo = FALSE, 
@@ -38,14 +40,18 @@ vrepl <- function(x, list, values){
 
 ```
 
-# Descripción 
+# Intro 
 
-En este sitio web encontrarás un análisis del COVID-19 en México.
+El objetivo de este sitio web es brindar de un fácil acceso a la información de los casos de COVID-19 en México, tanto a nivel federal como estatal. La fuente de estos datos son los [Datos Abiertos](https://www.gob.mx/salud/documentos/datos-abiertos-152127?idiom=es) puestos a disposición de la población en general por la Dirección General de Epidemiología de la Secretaría de Salud de México.
+
+Intentaré actualizar este sitio web diariamente, usando datos actualizados y agregando nuevas gráficas y tablas.
+
+Y recuerda, **¡si tu puedes, quédate en casa!**
 
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200414COVID19MEXICO.csv")
+dta <- read_csv("Data/200415COVID19MEXICO.csv")
 
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -94,6 +100,7 @@ dta.entidades <- read_excel(filenm.catalogs, "Catálogo de ENTIDADES")
 for(x in c("ENTIDAD_UM","ENTIDAD_NAC", "ENTIDAD_RES")){
   dta[[x]] <- vrepl(dta[[x]], dta.entidades$CLAVE_ENTIDAD,
                                     dta.entidades$ENTIDAD_FEDERATIVA) 
+  dta[[x]] <- str_to_title(dta[[x]])
 }
 
 ## Replace values of MUNICIPIO_RES
@@ -104,6 +111,7 @@ dta.municipio_res <- dta.municipio_res %>%
 x<- "MUNICIPIO_RES"
 dta[[x]] <- vrepl(dta[[x]], dta.municipio_res$ID_MUNICIPIO_RES,
                                   dta.municipio_res$MUNICIPIO) 
+dta[[x]] <- str_to_title(dta[[x]])
 
 ## Replace values of SI_NO variables
 dta.si_no <- read_excel(filenm.catalogs, "Catálogo SI_NO")
@@ -120,13 +128,14 @@ for(x in c("INTUBADO", "NEUMONIA", "EMBARAZO", "HABLA_LENGUA_INDI",
 #### CREATE GROUPS FOR WHICH SIMILAR ANALYSIS
 #### WILL BE PERFORMED
 dta1 <- dta %>% mutate(grp = `ENTIDAD_RES`)
-dta0 <- dta1 %>% mutate(grp = "NACIONAL") 
+dta0 <- dta1 %>% mutate(grp = "Nacional") 
 dta_comb <- rbind(dta1, dta0)
 dta_comb[["grp"]] <- as.factor(dta_comb[["grp"]])
 
 ## Split by grp
 dta_split <- with(dta_comb, split(dta_comb, grp, drop = TRUE))
 grp_names <- names(dta_split)
+
 ```
 
 ```{r analysisbygrp}
@@ -138,6 +147,8 @@ dta.blank <- data.frame("FECHA_INGRESO" = seq(date.first, date.last, 1))
 tbl.resultado <- NULL
 plot.posnew <- NULL
 plot.postotal <- NULL
+plot.sospnew <- NULL
+plot.sosptotal <- NULL
 
 for(x in grp_names){
   dtagrp <- dta_split[[x]]
@@ -145,11 +156,11 @@ for(x in grp_names){
   ans.tmp <- dtagrp %>% group_by(`FECHA_INGRESO`) %>%
       summarise("Nuevos Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
                 "Nuevos No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
-                "Nuevos Pendientes" = sum(`RESULTADO` == "Resultado pendiente"),
+                "Sospechosos" = sum(`RESULTADO` == "Resultado pendiente"),
                 "Nuevos Decesos" = sum(!is.na(`FECHA_DEF`))) %>%
       mutate("Total Positivo" = cumsum(`Nuevos Positivo`),
               "Total No Positivo" = cumsum(`Nuevos No Positivo`),
-              "Total Pendientes" = cumsum(`Nuevos Pendientes`),
+              "Total Sospechosos" = cumsum(`Sospechosos`),
               "Total Decesos" = cumsum(`Nuevos Decesos`))
   ans.tmp <- left_join(dta.blank, ans.tmp, by="FECHA_INGRESO")
   ans.tmp[is.na(ans.tmp)] <- 0
@@ -158,30 +169,49 @@ for(x in grp_names){
   
   ## Plot of new positive cases
   plot.posnew[[x]] <- tbl.resultado[[x]] %>%
-                        ggplot(aes(x = `FECHA_INGRESO`, y = `Nuevos Positivo`)) +
+                      ggplot(aes(x = `FECHA_INGRESO`, y = `Nuevos Positivo`)) +
                         geom_line(color = "darkblue") + 
-                        geom_point(aes(text = paste(`Nuevos Positivo`, 'casos en',
-                                format(`FECHA_INGRESO`, "%d/%m"))), 
+                        geom_point(aes(text = paste(`Nuevos Positivo`, 
+                            'casos en', format(`FECHA_INGRESO`, "%d/%m"))), 
                                 color = "darkblue") + 
                         theme_bw() +
-                        #theme(axis.text.x = element_text(size=6)) +
-                        #scale_y_continuous(n.breaks = 6) +
-                        #scale_x_date(date_labels = "%d/%m") +
-                        xlab("Fecha de Ingreso") + ylab("Nuevos Casos Positivos")
+                        xlab("Fecha de Ingreso") + 
+                        ylab("Nuevos Casos Positivos")
   
   ## Plot of total positive cases
     plot.postotal[[x]] <- tbl.resultado[[x]] %>%
-                        ggplot(aes(x = `FECHA_INGRESO`, y = `Total Positivo`)) +
+                      ggplot(aes(x = `FECHA_INGRESO`, y = `Total Positivo`)) +
                         geom_line(color = "darkblue") + 
-                        geom_point(aes(text = paste(`Total Positivo`, 'casos en',
-                                format(`FECHA_INGRESO`, "%d/%m"))), 
+                        geom_point(aes(text = paste(`Total Positivo`, 
+                              'casos en', format(`FECHA_INGRESO`, "%d/%m"))), 
                                 color = "darkblue") + 
                         theme_bw() +
-                        #theme(axis.text.x = element_text(size=6)) +
-                        #scale_y_continuous(n.breaks = 6) +
-                        #scale_x_date(date_labels = "%d/%m") +
-                        xlab("Fecha de Ingreso") + ylab("Total Casos Positivos")
-                        
+                        xlab("Fecha de Ingreso") + 
+                        ylab("Total Casos Positivos")
+
+    
+  ## Plot of suspect cases by day
+  plot.sospnew[[x]] <- tbl.resultado[[x]] %>%
+                      ggplot(aes(x = `FECHA_INGRESO`, y = `Sospechosos`)) +
+                        geom_line(color = "darkblue") + 
+                        geom_point(aes(text = paste(`Sospechosos`, 
+                            'casos en', format(`FECHA_INGRESO`, "%d/%m"))), 
+                                color = "darkblue") + 
+                        theme_bw() +
+                        xlab("Fecha de Ingreso") + 
+                        ylab("Casos Sospechosos")
+  
+  ## Plot of total suspect cases
+    plot.sosptotal[[x]] <- tbl.resultado[[x]] %>%
+                    ggplot(aes(x = `FECHA_INGRESO`, y = `Total Sospechosos`)) +
+                        geom_line(color = "darkblue") + 
+                        geom_point(aes(text = paste(`Total Sospechosos`, 
+                              'casos en', format(`FECHA_INGRESO`, "%d/%m"))), 
+                                color = "darkblue") + 
+                        theme_bw() +
+                        xlab("Fecha de Ingreso") + 
+                        ylab("Total Casos Sospechosos")    
+                            
                         
   
 }

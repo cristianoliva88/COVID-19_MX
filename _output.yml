@@ -8,4 +8,5 @@ bookdown::gitbook:
       scroll_highlight: yes
       before: |
         <li><a href="index.html"> Análisis del COVID-19 en México </a></li>
- 
+      after: |
+        <li><a href=http://cristianoliva88.github.io/website> Cristian Oliva Avilés </a></li>

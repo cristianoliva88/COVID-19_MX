@@ -149,17 +149,15 @@ tbl.entidades <- NULL
 tbl.resultado <- NULL
 tbl.municipios <- NULL
 
-plot.posnew <- NULL
-plot.postotal <- NULL
-plot.sospnew <- NULL
-plot.sosptotal <- NULL
+plot.casesnew <- NULL
+plot.casestotal <- NULL
 
 
 #### FOR TABLES OF CASOS EN PAIS MEXICO
 tbl.pais[["Nacional"]] <- dta_split[["Nacional"]]  %>% 
                 summarise("Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
                 "No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
-                "Sospechosos" = sum(`RESULTADO` == "Resultado pendiente"),
+                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"),
                 "Decesos" = sum(!is.na(`FECHA_DEF`) & 
                                   `RESULTADO` == "Positivo SARS-CoV-2"))
 
@@ -169,7 +167,7 @@ tbl.entidades[["Nacional"]] <- dta_split[["Nacional"]]  %>%
                       group_by(`ENTIDAD_RES`) %>%
                 summarise("Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
                 "No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
-                "Sospechosos" = sum(`RESULTADO` == "Resultado pendiente"),
+                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"),
                 "Decesos" = sum(!is.na(`FECHA_DEF`) & 
                                   `RESULTADO` == "Positivo SARS-CoV-2")) %>%
                   rename('Entidad Residencia' = ENTIDAD_RES)
@@ -182,12 +180,12 @@ for(x in grp_names){
   ans.tmp <- dtagrp %>% group_by(`FECHA_INGRESO`) %>%
       summarise("Nuevos Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
                 "Nuevos No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
-                "Sospechosos" = sum(`RESULTADO` == "Resultado pendiente"),
+                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"),
                 "Nuevos Decesos" = sum(!is.na(`FECHA_DEF`) & 
                                   `RESULTADO` == "Positivo SARS-CoV-2")) %>%
       mutate("Total Positivo" = cumsum(`Nuevos Positivo`),
               "Total No Positivo" = cumsum(`Nuevos No Positivo`),
-              "Total Sospechosos" = cumsum(`Sospechosos`),
+              "Total Pendientes" = cumsum(`Pendientes`),
               "Total Decesos" = cumsum(`Nuevos Decesos`))
   ans.tmp <- left_join(dta.blank, ans.tmp, by="FECHA_INGRESO")
   ans.tmp[is.na(ans.tmp)] <- 0
@@ -203,15 +201,16 @@ for(x in grp_names){
                      summarise("Positivo" = 
                                  sum(`RESULTADO` == "Positivo SARS-CoV-2"),
                 "No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
-                "Sospechosos" = sum(`RESULTADO` == "Resultado pendiente"),
+                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"),
                 "Decesos" = sum(!is.na(`FECHA_DEF`) & 
                                   `RESULTADO` == "Positivo SARS-CoV-2")) %>%
                   rename('Municipio Residencia' = MUNICIPIO_RES)
   
   
   ## Make Plot of New Positive Cases
-  plot.posnew[[x]] <- tbl.res %>% filter(`Tipo` %in% 
-                               c("Nuevos Positivo", "Nuevos Decesos")) %>%
+  plot.casesnew[[x]] <- tbl.res %>% filter(`Tipo` %in% 
+                               c("Nuevos Positivo", "Nuevos Decesos",
+                                 "Pendientes")) %>%
                       ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
                                  grp = `Tipo`, color = `Tipo`)) +
                         geom_line() + 
@@ -220,13 +219,15 @@ for(x in grp_names){
                               format(`FECHA_INGRESO`, "%d/%m")))) + 
                         theme_bw() + 
                         theme(legend.title = element_blank()) +
-                        scale_color_manual(values = c("darkblue", "red")) + 
+                        scale_color_manual(values = c("darkblue","yellow4",
+                                                      "red")) + 
                         xlab("Fecha de Ingreso/Fecha de Muerte") + 
-                        ylab("Nuevos Casos Positivos y Decesos") 
+                        ylab("Nuevos Casos") 
   
   ## Make Plot of Total Positive Cases
-    plot.postotal[[x]] <- tbl.res %>% filter(`Tipo` %in% 
-                               c("Total Positivo", "Total Decesos")) %>%
+    plot.casestotal[[x]] <- tbl.res %>% filter(`Tipo` %in% 
+                               c("Total Positivo", "Total Decesos",
+                                 "Total Pendientes")) %>%
                       ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
                                  grp = `Tipo`, color = `Tipo`)) +
                         geom_line() + 
@@ -235,41 +236,10 @@ for(x in grp_names){
                               format(`FECHA_INGRESO`, "%d/%m")))) + 
                         theme_bw() + 
                         theme(legend.title = element_blank()) +
-                        scale_color_manual(values = c("darkblue", "red")) + 
+                        scale_color_manual(values = c("darkblue","yellow4",
+                                                      "red")) + 
                         xlab("Fecha de Ingreso/Fecha de Muerte") + 
-                        ylab("Total Casos Positivos y Decesos") 
-    
-    
-  ## Make Plot of Suspect Cases by Day
-  plot.sospnew[[x]] <- tbl.res %>% filter(`Tipo` %in% 
-                               c("Sospechosos", "Nuevos Positivo")) %>%
-                      ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
-                                 grp = `Tipo`, color = `Tipo`)) +
-                        geom_line() + 
-                        geom_point(aes(text = paste(`Cantidad`, 
-                               `Tipo`, 'en',
-                              format(`FECHA_INGRESO`, "%d/%m")))) + 
-                        theme_bw() + 
-                        theme(legend.title = element_blank()) +
-                        scale_color_manual(values = c("darkblue", "yellow4")) + 
-                        xlab("Fecha de Ingreso") + 
-                        ylab("Nuevos Casos Sospechosos y Positivos") 
-    
-  
-  ## Make Plot of Total Suspect Cases
-    plot.sosptotal[[x]] <- tbl.res %>% filter(`Tipo` %in% 
-                               c("Total Sospechosos", "Total Positivo")) %>%
-                      ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
-                                 grp = `Tipo`, color = `Tipo`)) +
-                        geom_line() + 
-                        geom_point(aes(text = paste(`Cantidad`, 
-                               `Tipo`, 'en',
-                              format(`FECHA_INGRESO`, "%d/%m")))) + 
-                        theme_bw() + 
-                        theme(legend.title = element_blank()) +
-                        scale_color_manual(values = c("darkblue", "yellow4")) + 
-                        xlab("Fecha de Ingreso") + 
-                        ylab("Total Casos Sospechosos y Positivos")  
+                        ylab("Total Casos") 
                             
                         
 

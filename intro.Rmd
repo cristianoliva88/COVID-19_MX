@@ -17,41 +17,30 @@ ktbl <- tbl.pais[[x]] %>%
 cat("\n\n")  
 
 
-cat(paste("## Gráfica de Nuevos Casos Positivos por Fecha de Ingreso \n\n"))
+cat(paste("## Gráfica de Nuevos Casos Positivos por Fecha de Ingreso y Decesos por Fecha de Muerte \n\n"))
 cat("Los casos positivos son contabilizados respecto a la fecha de ingreso.
     Los días más recientes añadirán aquellos casos sospechosos que se
     conviertan en casos positivos una vez que el resultado de la prueba 
     esté disponible. \n\n")
-htmltools::tagList( ggplotly(plot.posnew[[x]], tooltip = "text",
+htmltools::tagList( ggplotly(plot.casesnew[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
-                        layout(legend = list(orientation = "h")) )
+                        layout(legend = list(orientation = "v",
+                                             x = 0)) )
 
 cat("\n\n")
 
-cat(paste("## Gráfica de Total Casos Positivos por Fecha de Ingreso \n\n"))
+cat(paste("## Gráfica de Total Casos Positivos por Fecha de Ingreso y Decesos por Fecha de Muerte \n\n"))
   cat("Los casos positivos son contabilizados respecto a la fecha de ingreso.
       Los días más recientes añadirán aquellos casos sospechosos que se
       conviertan en casos positivos una vez que el resultado de la prueba
       esté disponible. \n\n")
-htmltools::tagList( ggplotly(plot.postotal[[x]], tooltip = "text",
+htmltools::tagList( ggplotly(plot.casestotal[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
-                        layout(legend = list(orientation = "h")) )
+                        layout(legend = list(orientation = "v",
+                                             x = 0)) )
 
 cat("\n\n")
 
-cat(paste("## Gráfica de Casos Sospechosos por Fecha de Ingreso \n\n"))
-htmltools::tagList( ggplotly(plot.sospnew[[x]], tooltip = "text",
-                             dynamicTicks = TRUE) %>%
-                        layout(legend = list(orientation = "h")) )
-
-cat("\n\n")
-
-cat(paste("## Gráfica de Total Casos Sospechosos por Fecha de Ingreso \n\n"))
-htmltools::tagList( ggplotly(plot.sosptotal[[x]], tooltip = "text",
-                             dynamicTicks = TRUE) %>%
-                        layout(legend = list(orientation = "h")) )
-
-cat("\n\n")
 
 cat(paste("## Casos por Entidad de Residencia \n \n"))
 ktbl <- tbl.entidades[[x]] %>% 
@@ -89,35 +78,24 @@ for(x in grp_names_state){
     print(ktbl)
 
 cat("\n\n")    
-  cat("## Gráfica de Nuevos Casos Positivos por Fecha de Ingreso \n\n")
+  cat("## Gráfica de Nuevos Casos Positivos por Fecha de Ingreso y Decesos por Fecha de Muerte \n\n")
   cat("Los casos positivos son contabilizados respecto a la fecha de ingreso.
       Los días más recientes añadirán aquellos casos sospechosos que se
       conviertan en casos positivos una vez que el resultado de la prueba 
       esté disponible. \n\n")
 
-  print(htmltools::tagList( ggplotly(plot.posnew[[x]], tooltip = "text",
+  print(htmltools::tagList( ggplotly(plot.casesnew[[x]], tooltip = "text",
                                      dynamicTicks = TRUE) %>%
-                        layout(legend = list(orientation = "h")) ))
+                        layout(legend = list(orientation = "v", x = 0)) ))
   
-  cat("## Gráfica de Total Casos Positivos por Fecha de Ingreso \n\n")
+  cat("## Gráfica de Total Casos Positivos por Fecha de Ingreso y Decesos por Fecha de Muerte \n\n")
     cat("Los casos positivos son contabilizados respecto a la fecha de ingreso.
       Los días más recientes añadirán aquellos casos sospechosos que se
       conviertan en casos positivos una vez que el resultado de la prueba 
       esté disponible. \n\n")
-  print(htmltools::tagList( ggplotly(plot.postotal[[x]], tooltip = "text",
+  print(htmltools::tagList( ggplotly(plot.casestotal[[x]], tooltip = "text",
                                      dynamicTicks = TRUE) %>%
-                        layout(legend = list(orientation = "h")) ))
-  
-  cat(paste("## Gráfica de Casos Sospechosos por Fecha de Ingreso \n\n"))
-  print(htmltools::tagList( ggplotly(plot.sospnew[[x]], tooltip = "text",
-                             dynamicTicks = TRUE) %>%
-                        layout(legend = list(orientation = "h")) ))
-  
-  cat(paste("## Gráfica de Total Casos Sospechosos por Fecha de Ingreso \n\n"))
-  print(htmltools::tagList( ggplotly(plot.sosptotal[[x]], tooltip = "text",
-                             dynamicTicks = TRUE) %>%
-                        layout(legend = list(orientation = "h")) ))
-  
+                        layout(legend = list(orientation = "v", x = 0)) ))
   
   cat(paste("## Casos por Municipio de Residencia \n \n"))
   ktbl <- tbl.municipios[[x]] %>% 

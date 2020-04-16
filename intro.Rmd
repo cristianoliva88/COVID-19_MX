@@ -23,7 +23,8 @@ cat("Los casos positivos son contabilizados respecto a la fecha de ingreso.
     conviertan en casos positivos una vez que el resultado de la prueba 
     esté disponible. \n\n")
 htmltools::tagList( ggplotly(plot.posnew[[x]], tooltip = "text",
-                             dynamicTicks = TRUE) )
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "h", x = 0.3)) )
 
 cat("\n\n")
 
@@ -33,21 +34,24 @@ cat(paste("## Gráfica de Total Casos Positivos por Fecha de Ingreso \n\n"))
       conviertan en casos positivos una vez que el resultado de la prueba
       esté disponible. \n\n")
 htmltools::tagList( ggplotly(plot.postotal[[x]], tooltip = "text",
-                             dynamicTicks = TRUE) )
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "h", x = 0.3)) )
 
 cat("\n\n")
 
 cat(paste("## Gráfica de Casos Sospechosos por Fecha de Ingreso \n\n"))
 htmltools::tagList( ggplotly(plot.sospnew[[x]], tooltip = "text",
-                             dynamicTicks = TRUE) )
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "h", x = 0.3)) )
 
 cat("\n\n")
 
-#cat(paste("## Gráfica de Total Casos Sospechosos por Fecha de Ingreso \n\n"))
-#htmltools::tagList( ggplotly(plot.sosptotal[[x]], tooltip = "text",
-#                             dynamicTicks = TRUE) )
+cat(paste("## Gráfica de Total Casos Sospechosos por Fecha de Ingreso \n\n"))
+htmltools::tagList( ggplotly(plot.sosptotal[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "h", x = 0.3)) )
 
-#cat("\n\n")
+cat("\n\n")
 
 cat(paste("## Casos por Entidad de Residencia \n \n"))
 ktbl <- tbl.entidades[[x]] %>% 
@@ -92,7 +96,8 @@ cat("\n\n")
       esté disponible. \n\n")
 
   print(htmltools::tagList( ggplotly(plot.posnew[[x]], tooltip = "text",
-                                     dynamicTicks = TRUE) ))
+                                     dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "h", x = 0.3)) ))
   
   cat("## Gráfica de Total Casos Positivos por Fecha de Ingreso \n\n")
     cat("Los casos positivos son contabilizados respecto a la fecha de ingreso.
@@ -100,15 +105,18 @@ cat("\n\n")
       conviertan en casos positivos una vez que el resultado de la prueba 
       esté disponible. \n\n")
   print(htmltools::tagList( ggplotly(plot.postotal[[x]], tooltip = "text",
-                                     dynamicTicks = TRUE) ))
+                                     dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "h", x = 0.3)) ))
   
   cat(paste("## Gráfica de Casos Sospechosos por Fecha de Ingreso \n\n"))
   print(htmltools::tagList( ggplotly(plot.sospnew[[x]], tooltip = "text",
-                             dynamicTicks = TRUE) ))
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "h", x = 0.3)) ))
   
-#  cat(paste("## Gráfica de Total Casos Sospechosos por Fecha de Ingreso \n\n"))
-#  print(htmltools::tagList( ggplotly(plot.sosptotal[[x]], tooltip = "text",
-#                             dynamicTicks = TRUE) ))
+  cat(paste("## Gráfica de Total Casos Sospechosos por Fecha de Ingreso \n\n"))
+  print(htmltools::tagList( ggplotly(plot.sosptotal[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "h", x = 0.3)) ))
   
   
   cat(paste("## Casos por Municipio de Residencia \n \n"))

@@ -193,6 +193,11 @@ for(x in grp_names){
   ans.tmp[is.na(ans.tmp)] <- 0
   tbl.resultado[[x]] <- ans.tmp
   
+  #### FOR JOINT GRAPHS
+  tbl.res <- tbl.resultado[[x]] %>% gather(Tipo, Cantidad, 
+                                        "Nuevos Positivo":"Total Decesos",
+                                        factor_key = T)
+  
   #### FOR TABLES OF CASOS EN MUNICIPIOS
   tbl.municipios[[x]] <- dtagrp  %>% group_by(`MUNICIPIO_RES`) %>%
                      summarise("Positivo" = 
@@ -204,56 +209,71 @@ for(x in grp_names){
                   rename('Municipio Residencia' = MUNICIPIO_RES)
   
   
-  
   ## Make Plot of New Positive Cases
-  plot.posnew[[x]] <- tbl.resultado[[x]] %>%
-                      ggplot(aes(x = `FECHA_INGRESO`, y = `Nuevos Positivo`)) +
-                        geom_line(color = "darkblue") + 
-                        geom_point(aes(text = paste(`Nuevos Positivo`, 
-                            'casos en', format(`FECHA_INGRESO`, "%d/%m"))), 
-                                color = "darkblue") + 
-                        theme_bw() +
-                        xlab("Fecha de Ingreso") + 
-                        ylab("Nuevos Casos Positivos")
+  plot.posnew[[x]] <- tbl.res %>% filter(`Tipo` %in% 
+                               c("Nuevos Positivo", "Nuevos Decesos")) %>%
+                      ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
+                                 grp = `Tipo`, color = `Tipo`)) +
+                        geom_line() + 
+                        geom_point(aes(text = paste(`Cantidad`, 
+                               `Tipo`, 'en',
+                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        scale_color_manual(values = c("darkblue", "red")) + 
+                        xlab("Fecha de Ingreso/Fecha de Muerte") + 
+                        ylab("Nuevos Casos Positivos y Decesos") 
   
   ## Make Plot of Total Positive Cases
-    plot.postotal[[x]] <- tbl.resultado[[x]] %>%
-                      ggplot(aes(x = `FECHA_INGRESO`, y = `Total Positivo`)) +
-                        geom_line(color = "darkblue") + 
-                        geom_point(aes(text = paste(`Total Positivo`, 
-                              'casos en', format(`FECHA_INGRESO`, "%d/%m"))), 
-                                color = "darkblue") + 
-                        theme_bw() +
-                        xlab("Fecha de Ingreso") + 
-                        ylab("Total Casos Positivos") 
-
+    plot.postotal[[x]] <- tbl.res %>% filter(`Tipo` %in% 
+                               c("Total Positivo", "Total Decesos")) %>%
+                      ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
+                                 grp = `Tipo`, color = `Tipo`)) +
+                        geom_line() + 
+                        geom_point(aes(text = paste(`Cantidad`, 
+                               `Tipo`, 'en',
+                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        scale_color_manual(values = c("darkblue", "red")) + 
+                        xlab("Fecha de Ingreso/Fecha de Muerte") + 
+                        ylab("Total Casos Positivos y Decesos") 
+    
     
   ## Make Plot of Suspect Cases by Day
-  plot.sospnew[[x]] <- tbl.resultado[[x]] %>%
-                      ggplot(aes(x = `FECHA_INGRESO`, y = `Sospechosos`)) +
-                        geom_line(color = "darkblue") + 
-                        geom_point(aes(text = paste(`Sospechosos`, 
-                            'casos en', format(`FECHA_INGRESO`, "%d/%m"))), 
-                                color = "darkblue") + 
-                        theme_bw() +
+  plot.sospnew[[x]] <- tbl.res %>% filter(`Tipo` %in% 
+                               c("Sospechosos", "Nuevos Positivo")) %>%
+                      ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
+                                 grp = `Tipo`, color = `Tipo`)) +
+                        geom_line() + 
+                        geom_point(aes(text = paste(`Cantidad`, 
+                               `Tipo`, 'en',
+                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        scale_color_manual(values = c("darkblue", "yellow4")) + 
                         xlab("Fecha de Ingreso") + 
-                        ylab("Casos Sospechosos")
+                        ylab("Nuevos Casos Sospechosos y Positivos") 
+    
   
   ## Make Plot of Total Suspect Cases
-    plot.sosptotal[[x]] <- tbl.resultado[[x]] %>%
-                    ggplot(aes(x = `FECHA_INGRESO`, y = `Total Sospechosos`)) +
-                        geom_line(color = "darkblue") + 
-                        geom_point(aes(text = paste(`Total Sospechosos`, 
-                              'casos en', format(`FECHA_INGRESO`, "%d/%m"))), 
-                                color = "darkblue") + 
-                        theme_bw() +
+    plot.sosptotal[[x]] <- tbl.res %>% filter(`Tipo` %in% 
+                               c("Total Sospechosos", "Total Positivo")) %>%
+                      ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
+                                 grp = `Tipo`, color = `Tipo`)) +
+                        geom_line() + 
+                        geom_point(aes(text = paste(`Cantidad`, 
+                               `Tipo`, 'en',
+                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        scale_color_manual(values = c("darkblue", "yellow4")) + 
                         xlab("Fecha de Ingreso") + 
-                        ylab("Total Casos Sospechosos")    
+                        ylab("Total Casos Sospechosos y Positivos")  
                             
                         
 
-      
-}
+  }
 
 
 ```

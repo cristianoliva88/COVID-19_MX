@@ -79,8 +79,8 @@ for(x in grp_names_state){
                  align = "c") %>%
     kableExtra::kable_styling(
           bootstrap_options = c("striped","condensed"),
-          full_width = T) %>%
-    kableExtra::scroll_box(height = "300px")
+          full_width = F) %>%
+    kableExtra::scroll_box(width = "100%", height = "300px")
     
   print(ktbl)
   

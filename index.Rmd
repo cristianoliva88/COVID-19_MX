@@ -23,7 +23,7 @@ library(knitr)
 library(plotly)
 library(stringr)
 
-knitr::opts_chunk$set(fig.align = "center", warning = FALSE, 
+knitr::opts_chunk$set(warning = FALSE, 
                       message = FALSE, echo = FALSE, 
                       results = "asis", purl = FALSE)
 
@@ -145,6 +145,8 @@ date.last <- tail(sort(unique(dta$FECHA_INGRESO)),1)
 dta.blank <- data.frame("FECHA_INGRESO" = seq(date.first, date.last, 1))
 
 tbl.resultado <- NULL
+tbl.municipios <- NULL
+
 plot.posnew <- NULL
 plot.postotal <- NULL
 plot.sospnew <- NULL
@@ -167,6 +169,15 @@ for(x in grp_names){
   tbl.resultado[[x]] <- ans.tmp
   
   
+  tbl.municipios[[x]] <- dtagrp  %>% group_by(`MUNICIPIO_RES`) %>%
+                     summarise("Positivo" = 
+                                 sum(`RESULTADO` == "Positivo SARS-CoV-2"),
+                "No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
+                "Sospechosos" = sum(`RESULTADO` == "Resultado pendiente"),
+                "Decesos" = sum(!is.na(`FECHA_DEF`))) %>%
+                  rename('Municipio Residencia' = MUNICIPIO_RES)
+  
+  
   ## Plot of new positive cases
   plot.posnew[[x]] <- tbl.resultado[[x]] %>%
                       ggplot(aes(x = `FECHA_INGRESO`, y = `Nuevos Positivo`)) +
@@ -187,7 +198,7 @@ for(x in grp_names){
                                 color = "darkblue") + 
                         theme_bw() +
                         xlab("Fecha de Ingreso") + 
-                        ylab("Total Casos Positivos")
+                        ylab("Total Casos Positivos") 
 
     
   ## Plot of suspect cases by day
@@ -213,7 +224,8 @@ for(x in grp_names){
                         ylab("Total Casos Sospechosos")    
                             
                         
-  
+
+      
 }
 
 

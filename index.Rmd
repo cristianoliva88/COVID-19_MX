@@ -148,9 +148,11 @@ tbl.pais <- NULL
 tbl.entidades <- NULL
 tbl.resultado <- NULL
 tbl.municipios <- NULL
+tbl.tasa <- NULL
 
 plot.casesnew <- NULL
 plot.casestotal <- NULL
+plot.tasatotal <- NULL
 
 
 #### FOR TABLES OF CASOS EN PAIS MEXICO
@@ -176,7 +178,17 @@ tbl.entidades[["Nacional"]] <- dta_split[["Nacional"]]  %>%
 for(x in grp_names){
   dtagrp <- dta_split[[x]]
   
-  #### FOR PLOTS OF POSITIVOS y PENDIENTES
+  #### FOR TABLES OF CASOS EN MUNICIPIOS
+  tbl.municipios[[x]] <- dtagrp  %>% group_by(`MUNICIPIO_RES`) %>%
+                     summarise("Positivo" = 
+                                 sum(`RESULTADO` == "Positivo SARS-CoV-2"),
+                "No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
+                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"),
+                "Decesos" = sum(!is.na(`FECHA_DEF`) & 
+                                  `RESULTADO` == "Positivo SARS-CoV-2")) %>%
+                  rename('Municipio Residencia' = MUNICIPIO_RES)
+  
+  #### FOR PLOTS OF POSITIVOS, PENDIENTES Y MUERTES
   ans.tmp <- dtagrp %>% group_by(`FECHA_INGRESO`) %>%
       summarise("Nuevos Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
                 "Nuevos No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
@@ -191,24 +203,13 @@ for(x in grp_names){
   ans.tmp[is.na(ans.tmp)] <- 0
   tbl.resultado[[x]] <- ans.tmp
   
-  #### FOR JOINT GRAPHS
-  tbl.res <- tbl.resultado[[x]] %>% gather(Tipo, Cantidad, 
+  #### FOR JOINT GRAPHS OF CASES
+  tbl.restmp <- tbl.resultado[[x]] %>% gather(Tipo, Cantidad, 
                                         "Nuevos Positivo":"Total Decesos",
                                         factor_key = T)
   
-  #### FOR TABLES OF CASOS EN MUNICIPIOS
-  tbl.municipios[[x]] <- dtagrp  %>% group_by(`MUNICIPIO_RES`) %>%
-                     summarise("Positivo" = 
-                                 sum(`RESULTADO` == "Positivo SARS-CoV-2"),
-                "No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
-                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"),
-                "Decesos" = sum(!is.na(`FECHA_DEF`) & 
-                                  `RESULTADO` == "Positivo SARS-CoV-2")) %>%
-                  rename('Municipio Residencia' = MUNICIPIO_RES)
-  
-  
   ## Make Plot of New Positive Cases
-  plot.casesnew[[x]] <- tbl.res %>% filter(`Tipo` %in% 
+  plot.casesnew[[x]] <- tbl.restmp %>% filter(`Tipo` %in% 
                                c("Nuevos Positivo", "Nuevos Decesos",
                                  "Pendientes")) %>%
                       ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
@@ -225,14 +226,14 @@ for(x in grp_names){
                         ylab("Nuevos Casos") 
   
   ## Make Plot of Total Positive Cases
-    plot.casestotal[[x]] <- tbl.res %>% filter(`Tipo` %in% 
+    plot.casestotal[[x]] <- tbl.restmp %>% filter(`Tipo` %in% 
                                c("Total Positivo", "Total Decesos",
                                  "Total Pendientes")) %>%
                       ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
                                  grp = `Tipo`, color = `Tipo`)) +
                         geom_line() + 
                         geom_point(aes(text = paste(`Cantidad`, 
-                               `Tipo`, 'en',
+                               `Tipo`, 'hasta',
                               format(`FECHA_INGRESO`, "%d/%m")))) + 
                         theme_bw() + 
                         theme(legend.title = element_blank()) +
@@ -241,7 +242,36 @@ for(x in grp_names){
                         xlab("Fecha de Ingreso/Fecha de Muerte") + 
                         ylab("Total Casos") 
                             
-                        
+    #### FOR JOINT GRAPHS OF TASA
+    tbl.tasa[[x]] <- tbl.resultado[[x]] %>% 
+              mutate("Tasa Positividad por Dia" = `Nuevos Positivo`/
+                              (`Nuevos Positivo` + `Nuevos No Positivo`),
+                     "Tasa Positividad" = `Total Positivo`/
+                              (`Total Positivo` + `Total No Positivo`),
+                     "Tasa Letalidad por Dia" = `Nuevos Decesos`/
+                              `Nuevos Positivo`,  
+                      "Tasa Letalidad" = `Total Decesos`/
+                              `Total Positivo`)   
+    
+    tbl.tasatmp <- tbl.tasa[[x]] %>% 
+                  gather(Tasa, Cantidad,  
+                         "Tasa Positividad por Dia":"Tasa Letalidad",
+                                        factor_key = T)
+  
+
+    plot.tasatotal[[x]] <-  tbl.tasatmp %>%  filter(`Tasa` %in% 
+                               c("Tasa Positividad", "Tasa Letalidad")) %>%
+                            ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
+                                   grp = `Tasa`, color = `Tasa`)) +
+                        geom_line() + 
+                        geom_point(aes(text = paste(`Tasa`, 'es',
+                                             round(`Cantidad`, 2), 'hasta',
+                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        scale_color_manual(values = c("darkblue","red")) + 
+                        xlab("Fecha de Ingreso/Fecha de Muerte") + 
+                        ylab("Tasa de Positividad y Letalidad") 
 
   }
 

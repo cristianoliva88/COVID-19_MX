@@ -25,7 +25,7 @@ library(stringr)
 
 knitr::opts_chunk$set(warning = FALSE, 
                       message = FALSE, echo = FALSE, 
-                      results = "asis", purl = FALSE)
+                      results = 'asis', purl = FALSE)
 
 #### FUNCTION TO REPLACE VALUES
 vrepl <- function(x, list, values){
@@ -42,7 +42,7 @@ vrepl <- function(x, list, values){
 
 # Intro 
 
-El objetivo de este sitio web es brindar de un fácil acceso a la información de los casos de COVID-19 en México, tanto a nivel federal como estatal. La fuente de estos datos son los [Datos Abiertos](https://www.gob.mx/salud/documentos/datos-abiertos-152127?idiom=es) puestos a disposición de la población en general por la Dirección General de Epidemiología de la Secretaría de Salud de México.
+Este sitio web tiene el objetivo de brindar un fácil acceso a la información de los casos de COVID-19 en México, tanto a nivel federal como estatal. La fuente de estos datos son los [Datos Abiertos](https://www.gob.mx/salud/documentos/datos-abiertos-152127?idiom=es) puestos a disposición de la población en general por la Dirección General de Epidemiología de la Secretaría de Salud de México.
 
 Intentaré actualizar este sitio web diariamente, usando datos actualizados y agregando nuevas gráficas y tablas.
 
@@ -144,6 +144,8 @@ date.first <- head(sort(unique(dta$FECHA_INGRESO)),1)
 date.last <- tail(sort(unique(dta$FECHA_INGRESO)),1)
 dta.blank <- data.frame("FECHA_INGRESO" = seq(date.first, date.last, 1))
 
+tbl.pais <- NULL
+tbl.entidades <- NULL
 tbl.resultado <- NULL
 tbl.municipios <- NULL
 
@@ -152,14 +154,37 @@ plot.postotal <- NULL
 plot.sospnew <- NULL
 plot.sosptotal <- NULL
 
+
+#### FOR TABLES OF CASOS EN PAIS MEXICO
+tbl.pais[["Nacional"]] <- dta_split[["Nacional"]]  %>% 
+                summarise("Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
+                "No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
+                "Sospechosos" = sum(`RESULTADO` == "Resultado pendiente"),
+                "Decesos" = sum(!is.na(`FECHA_DEF`) & 
+                                  `RESULTADO` == "Positivo SARS-CoV-2"))
+
+
+#### FOR TABLES OF CASOS EN ENTIDADES
+tbl.entidades[["Nacional"]] <- dta_split[["Nacional"]]  %>% 
+                      group_by(`ENTIDAD_RES`) %>%
+                summarise("Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
+                "No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
+                "Sospechosos" = sum(`RESULTADO` == "Resultado pendiente"),
+                "Decesos" = sum(!is.na(`FECHA_DEF`) & 
+                                  `RESULTADO` == "Positivo SARS-CoV-2")) %>%
+                  rename('Entidad Residencia' = ENTIDAD_RES)
+  
+#### START LOOP  
 for(x in grp_names){
   dtagrp <- dta_split[[x]]
   
+  #### FOR PLOTS OF POSITIVOS y PENDIENTES
   ans.tmp <- dtagrp %>% group_by(`FECHA_INGRESO`) %>%
       summarise("Nuevos Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
                 "Nuevos No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
                 "Sospechosos" = sum(`RESULTADO` == "Resultado pendiente"),
-                "Nuevos Decesos" = sum(!is.na(`FECHA_DEF`))) %>%
+                "Nuevos Decesos" = sum(!is.na(`FECHA_DEF`) & 
+                                  `RESULTADO` == "Positivo SARS-CoV-2")) %>%
       mutate("Total Positivo" = cumsum(`Nuevos Positivo`),
               "Total No Positivo" = cumsum(`Nuevos No Positivo`),
               "Total Sospechosos" = cumsum(`Sospechosos`),
@@ -168,17 +193,19 @@ for(x in grp_names){
   ans.tmp[is.na(ans.tmp)] <- 0
   tbl.resultado[[x]] <- ans.tmp
   
-  
+  #### FOR TABLES OF CASOS EN MUNICIPIOS
   tbl.municipios[[x]] <- dtagrp  %>% group_by(`MUNICIPIO_RES`) %>%
                      summarise("Positivo" = 
                                  sum(`RESULTADO` == "Positivo SARS-CoV-2"),
                 "No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
                 "Sospechosos" = sum(`RESULTADO` == "Resultado pendiente"),
-                "Decesos" = sum(!is.na(`FECHA_DEF`))) %>%
+                "Decesos" = sum(!is.na(`FECHA_DEF`) & 
+                                  `RESULTADO` == "Positivo SARS-CoV-2")) %>%
                   rename('Municipio Residencia' = MUNICIPIO_RES)
   
   
-  ## Plot of new positive cases
+  
+  ## Make Plot of New Positive Cases
   plot.posnew[[x]] <- tbl.resultado[[x]] %>%
                       ggplot(aes(x = `FECHA_INGRESO`, y = `Nuevos Positivo`)) +
                         geom_line(color = "darkblue") + 
@@ -189,7 +216,7 @@ for(x in grp_names){
                         xlab("Fecha de Ingreso") + 
                         ylab("Nuevos Casos Positivos")
   
-  ## Plot of total positive cases
+  ## Make Plot of Total Positive Cases
     plot.postotal[[x]] <- tbl.resultado[[x]] %>%
                       ggplot(aes(x = `FECHA_INGRESO`, y = `Total Positivo`)) +
                         geom_line(color = "darkblue") + 
@@ -201,7 +228,7 @@ for(x in grp_names){
                         ylab("Total Casos Positivos") 
 
     
-  ## Plot of suspect cases by day
+  ## Make Plot of Suspect Cases by Day
   plot.sospnew[[x]] <- tbl.resultado[[x]] %>%
                       ggplot(aes(x = `FECHA_INGRESO`, y = `Sospechosos`)) +
                         geom_line(color = "darkblue") + 
@@ -212,7 +239,7 @@ for(x in grp_names){
                         xlab("Fecha de Ingreso") + 
                         ylab("Casos Sospechosos")
   
-  ## Plot of total suspect cases
+  ## Make Plot of Total Suspect Cases
     plot.sosptotal[[x]] <- tbl.resultado[[x]] %>%
                     ggplot(aes(x = `FECHA_INGRESO`, y = `Total Sospechosos`)) +
                         geom_line(color = "darkblue") + 

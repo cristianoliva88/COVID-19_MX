@@ -3,6 +3,20 @@
 ```{r national}
 x <- "Nacional"
 
+cat(paste("## Resumen Actual de Casos en México \n \n"))
+ktbl <- tbl.pais[[x]] %>% 
+          knitr::kable(format = "html",
+                   digits = 0,
+                   row.names = F,
+                   align = "c") %>%
+          kableExtra::kable_styling(
+                  bootstrap_options = c("striped","condensed"),
+                  full_width = F) 
+  print(ktbl)
+
+cat("\n\n")  
+
+
 cat(paste("## Gráfica de Nuevos Casos Positivos por Fecha de Ingreso \n\n"))
 cat("Los casos positivos son contabilizados respecto a la fecha de ingreso.
     Los días más recientes añadirán aquellos casos sospechosos que se
@@ -29,22 +43,48 @@ htmltools::tagList( ggplotly(plot.sospnew[[x]], tooltip = "text",
 
 cat("\n\n")
 
-cat(paste("## Gráfica de Total Casos Sospechosos por Fecha de Ingreso \n\n"))
-htmltools::tagList( ggplotly(plot.sosptotal[[x]], tooltip = "text",
-                             dynamicTicks = TRUE) )
+#cat(paste("## Gráfica de Total Casos Sospechosos por Fecha de Ingreso \n\n"))
+#htmltools::tagList( ggplotly(plot.sosptotal[[x]], tooltip = "text",
+#                             dynamicTicks = TRUE) )
 
-cat("\n\n")
+#cat("\n\n")
 
+cat(paste("## Casos por Entidad de Residencia \n \n"))
+ktbl <- tbl.entidades[[x]] %>% 
+          knitr::kable(format = "html",
+                   digits = 0,
+                   row.names = F,
+                   align = "c") %>%
+          kableExtra::kable_styling(
+                  bootstrap_options = c("striped","condensed"),
+                  full_width = F) %>%
+          kableExtra::scroll_box(height = "260px")
+  print(ktbl)
 
-
+cat("\n\n")  
+  
 ```
 
-```{r state, results = 'asis'}
+```{r state}
 grp_names_state <- grp_names[grp_names != "Nacional"]
 for(x in grp_names_state){
   
   cat(paste("#", x, sep = " ", "\n\n"))
-  
+
+  cat(paste("## Resumen Actual de Casos \n\n", sep = " "))
+  ktbl <- tbl.entidades[["Nacional"]] %>% 
+              filter(`Entidad Residencia` == x) %>%
+              select(-c(`Entidad Residencia`)) %>%
+          knitr::kable(format = "html",
+                   digits = 0,
+                   row.names = F,
+                   align = "c") %>%
+          kableExtra::kable_styling(
+                  bootstrap_options = c("striped","condensed"),
+                  full_width = F)
+    print(ktbl)
+
+cat("\n\n")    
   cat("## Gráfica de Nuevos Casos Positivos por Fecha de Ingreso \n\n")
   cat("Los casos positivos son contabilizados respecto a la fecha de ingreso.
       Los días más recientes añadirán aquellos casos sospechosos que se
@@ -66,9 +106,9 @@ for(x in grp_names_state){
   print(htmltools::tagList( ggplotly(plot.sospnew[[x]], tooltip = "text",
                              dynamicTicks = TRUE) ))
   
-  cat(paste("## Gráfica de Total Casos Sospechosos por Fecha de Ingreso \n\n"))
-  print(htmltools::tagList( ggplotly(plot.sosptotal[[x]], tooltip = "text",
-                             dynamicTicks = TRUE) ))
+#  cat(paste("## Gráfica de Total Casos Sospechosos por Fecha de Ingreso \n\n"))
+#  print(htmltools::tagList( ggplotly(plot.sosptotal[[x]], tooltip = "text",
+#                             dynamicTicks = TRUE) ))
   
   
   cat(paste("## Casos por Municipio de Residencia \n \n"))
@@ -80,8 +120,7 @@ for(x in grp_names_state){
     kableExtra::kable_styling(
           bootstrap_options = c("striped","condensed"),
           full_width = F) %>%
-    kableExtra::scroll_box(width = "100%", height = "300px")
-    
+    kableExtra::scroll_box(height = "260px")
   print(ktbl)
   
   cat("\n\n")

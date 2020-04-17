@@ -35,7 +35,29 @@ htmltools::tagList( ggplotly(plot.casestotal[[x]], tooltip = "text",
 
 cat("\n\n")
 
-cat(paste("## Tasa Positividad y Letalidad \n\n"))
+cat(paste("## Gráfica de Casos Positivos por Edad/Sexo \n\n"))
+cat("\n\n")
+htmltools::tagList( ggplotly(plot.possex[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "v", x = 0)) )
+
+cat("\n\n")
+
+cat(paste("## Gráfica de Decesos por Enfermedad/Edad \n\n"))
+cat("\n\n")
+htmltools::tagList( ggplotly(plot.condicion[[x]], tooltip = "text") %>%
+                      layout(height = 400))
+
+cat("\n\n")
+
+cat(paste("## Gráfica de Casos/Pruebas por Día  \n\n"))
+cat("\n\n")
+htmltools::tagList( ggplotly(plot.pruebasnew[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) )
+
+cat("\n\n")
+
+cat(paste("## Gráfica de Tasa Positividad y Letalidad \n\n"))
 cat("\n\n")
 htmltools::tagList( ggplotly(plot.tasatotal[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
@@ -57,7 +79,14 @@ ktbl <- tbl.entidades[[x]] %>%
   print(ktbl)
 
 cat("\n\n")  
-  
+
+cat(paste("## Gráfica por Institución que Brindó la Atención \n\n"))
+cat("\n\n")
+htmltools::tagList( ggplotly(plot.sector[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) )
+
+cat("\n\n")
+
 ```
 
 ```{r state}
@@ -93,12 +122,29 @@ cat("\n\n")
                                      dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v", x = 0)) ))
   
-  cat("## Tasa Positividad y Letalidad \n\n")
+  cat(paste("## Gráfica de Casos Positivos por Edad/Sexo \n\n"))
+  cat("\n\n")
+  print(htmltools::tagList( ggplotly(plot.possex[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "v", x = 0)) ))
+  
+  cat(paste("## Gráfica de Decesos por Enfermedad/Edad \n\n"))
+  cat("\n\n")
+  if(x != "Colima"){
+  print(htmltools::tagList( ggplotly(plot.condicion[[x]], tooltip = "text") %>%
+                      layout(height = 400)))}
+  else{cat("No hay decesos confirmados a la fecha. \n\n")}
+  
+  cat(paste("## Gráfica de Casos/Pruebas por Día  \n\n"))
+  cat("\n\n")
+  print(htmltools::tagList( ggplotly(plot.pruebasnew[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) ) )
+  
+  cat("## Gráfica de Tasa Positividad y Letalidad \n\n")
   cat(" \n\n")
   print(htmltools::tagList( ggplotly(plot.tasatotal[[x]], tooltip = "text",
                                      dynamicTicks = TRUE) %>%
-                        layout(legend = list(orientation = "v", x = 0)) ))
-  
+                        layout(legend = list(orientation = "v", x = 0)) )) 
   
   cat(paste("## Casos por Municipio de Residencia \n \n"))
   ktbl <- tbl.municipios[[x]] %>% 
@@ -111,6 +157,11 @@ cat("\n\n")
           full_width = F) %>%
     kableExtra::scroll_box(height = "260px")
   print(ktbl)
+  
+  cat(paste("## Gráfica por Institución que Brindó la Atención \n\n"))
+  cat("\n\n")
+  print(htmltools::tagList( ggplotly(plot.sector[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) ))
   
   cat("\n\n")
 }

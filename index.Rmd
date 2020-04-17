@@ -75,7 +75,9 @@ dta <- dta %>% mutate("SECTOR" = vrepl(`SECTOR`, dta.sector$CLAVE,
 ## Replace values of SEXO
 dta.sexo <- read_excel(filenm.catalogs, "Catálogo SEXO")
 dta <- dta %>% mutate("SEXO" = vrepl(`SEXO`, dta.sexo$CLAVE,
-                                       dta.sexo$DESCRIPCIÓN) )
+                                       dta.sexo$DESCRIPCIÓN),
+                      "SEXO" = factor(`SEXO`, levels = c("MUJER",
+                                                         "HOMBRE")))
 
 ## Replace values of TIPO_PACIENTE
 dta.tipo_paciente <- read_excel(filenm.catalogs, "Catálogo TIPO_PACIENTE")
@@ -121,7 +123,22 @@ for(x in c("INTUBADO", "NEUMONIA", "EMBARAZO", "HABLA_LENGUA_INDIG",
            "TABAQUISMO", "OTRO_CASO")){
   dta[[x]] <- vrepl(dta[[x]], dta.si_no$CLAVE,
                                     dta.si_no$DESCRIPCIÓN) 
+  dta[[x]] <- factor(dta[[x]], levels = c("SI","NO", "NO APLICA",
+                                          "SE IGNORA", "NO ESPECIFICADO"))
 }
+
+## Create age group variable (10-year groups)
+dta <- dta %>% mutate("EDAD_GRUPO" = 
+                        findInterval(`EDAD`, c(10,20,30,40,50,60)),
+                      "EDAD_GRUPO" = vrepl(`EDAD_GRUPO`,
+                                           0:6, c("0-9","10-19","20-29",
+                                                  "30-39","40-49","50-59",
+                                                  ">=60")),
+                      "EDAD_GRUPO" = factor(`EDAD_GRUPO`, 
+                                            levels = c("0-9","10-19","20-29",
+                                                  "30-39","40-49","50-59",
+                                                  ">=60")) 
+                      )
 
 
 
@@ -152,7 +169,11 @@ tbl.tasa <- NULL
 
 plot.casesnew <- NULL
 plot.casestotal <- NULL
+plot.pruebasnew <- NULL
 plot.tasatotal <- NULL
+plot.sector <- NULL
+plot.possex <- NULL
+plot.condicion <- NULL
 
 
 #### FOR TABLES OF CASOS EN PAIS MEXICO
@@ -198,7 +219,9 @@ for(x in grp_names){
       mutate("Total Positivo" = cumsum(`Nuevos Positivo`),
               "Total No Positivo" = cumsum(`Nuevos No Positivo`),
               "Total Pendientes" = cumsum(`Pendientes`),
-              "Total Decesos" = cumsum(`Nuevos Decesos`))
+              "Total Decesos" = cumsum(`Nuevos Decesos`),
+              "Nuevas Pruebas" = `Nuevos Positivo` + `Nuevos No Positivo` +
+                                       `Pendientes`)
   ans.tmp <- left_join(dta.blank, ans.tmp, by="FECHA_INGRESO")
   ans.tmp[is.na(ans.tmp)] <- 0
   tbl.resultado[[x]] <- ans.tmp
@@ -241,7 +264,22 @@ for(x in grp_names){
                                                       "red")) + 
                         xlab("Fecha de Ingreso/Fecha de Muerte") + 
                         ylab("Total Casos") 
-                            
+    
+    
+    #### Make Plot for Pruebas/Casos por Dia
+    plot.pruebasnew[[x]] <- tbl.resultado[[x]] %>%
+                      ggplot(aes(x = `FECHA_INGRESO`, y = `Nuevas Pruebas`)) +
+                        geom_line(color = "darkblue") + 
+                        geom_point(color = "darkblue",
+                                   aes(text = paste(`Nuevas Pruebas`, 
+                                'casos/pruebas en',
+                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        xlab("Fecha de Ingreso") + 
+                        ylab("Casos/Pruebas por Día") 
+    
+    
     #### FOR JOINT GRAPHS OF TASA
     tbl.tasa[[x]] <- tbl.resultado[[x]] %>% 
               mutate("Tasa Positividad por Dia" = `Nuevos Positivo`/
@@ -258,22 +296,90 @@ for(x in grp_names){
                          "Tasa Positividad por Dia":"Tasa Letalidad",
                                         factor_key = T)
   
-
+    ## Make Plot of Tasa Positividad/Letalidad
     plot.tasatotal[[x]] <-  tbl.tasatmp %>%  filter(`Tasa` %in% 
                                c("Tasa Positividad", "Tasa Letalidad")) %>%
                             ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
                                    grp = `Tasa`, color = `Tasa`)) +
                         geom_line() + 
                         geom_point(aes(text = paste(`Tasa`, 'es',
-                                             round(`Cantidad`, 2), 'hasta',
+                                             round(100*`Cantidad`, 2), '% hasta',
                               format(`FECHA_INGRESO`, "%d/%m")))) + 
                         theme_bw() + 
                         theme(legend.title = element_blank()) +
                         scale_color_manual(values = c("darkblue","red")) + 
                         xlab("Fecha de Ingreso/Fecha de Muerte") + 
                         ylab("Tasa de Positividad y Letalidad") 
+    
+    
+    #### FOR UNIDAD MEDICA THAT OFFERED HEALTH SERVICE
+     tbl.sectortmp <- dtagrp %>% group_by(`SECTOR`) %>%
+          summarise("Casos" = n()) %>%
+          mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2) )
+     
+     plot.sector[[x]] <- tbl.sectortmp %>% ggplot(aes(x = `SECTOR`, 
+                                                      y = `Casos`)) + 
+                          geom_bar(stat = "identity", 
+                                   aes(text = paste(`Casos`, " casos ", 
+                                              "(", `Porcentaje`, "%)", sep="")), 
+                                   fill = "darkblue") + 
+                          theme_bw() + 
+                          theme(axis.text.x = element_text(size = rel(0.8), 
+                                                           angle = 45)) +
+                          xlab("Institución que brindó la atención") + 
+                          ylab("Número de Casos") 
+     
+     
+     #### FOR STATS ON POSITIVE CASES
+    tbl.possextmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2") %>%
+          group_by(`EDAD_GRUPO`, `SEXO`, .drop = FALSE) %>%
+            summarise("Casos" = n()) %>% ungroup() %>%
+              mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2))
+    
+    plot.possex[[x]] <- tbl.possextmp %>% ggplot(aes(x = `EDAD_GRUPO`, 
+                                                 y = `Porcentaje`, 
+                                                 fill = `SEXO`)) +
+                  geom_bar(stat = "identity", 
+                                   aes(text = paste(`Casos`, 
+                                  " casos positivos entre ",  `EDAD_GRUPO`, 
+                                  " años ","(", `Porcentaje`, "%)",
+                                              sep=""))) +
+                  theme_bw()  +
+                  scale_fill_brewer(palette = "Dark2") +
+                  xlab("Grupo de Edad") + 
+                  ylab("% de Casos Positivos") 
+    
 
-  }
+     #### MORTALITY BY MEDICAL CONDITION AND AGE GROUP
+     tbl.condiciontmp <- dtagrp %>% filter(!is.na(`FECHA_DEF`) &
+                                  `RESULTADO` == "Positivo SARS-CoV-2") %>%
+                         gather(Condicion, SiNo, 
+                                      "DIABETES":"TABAQUISMO", factor_key = T) %>%
+                  mutate("SiNo" = as.factor(`SiNo`)) %>%
+                  group_by(`Condicion`, `EDAD_GRUPO`, `SiNo`, .drop = FALSE) %>%
+                        summarise("Casos" = n()) %>% ungroup() %>%
+                        group_by(`Condicion`) %>%
+                        mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`) )) 
+      
+     plot.condicion[[x]] <- tbl.condiciontmp %>% filter(`SiNo` == "SI") %>%
+                                  ggplot(aes(x = `EDAD_GRUPO`, 
+                                                 y = `Porcentaje`)) +
+                  geom_bar(stat = "identity", fill = "darkblue", 
+                                   aes(text = paste(`Casos`, 
+                                  " decesos con ",  `Condicion`, " entre ",
+                                  `EDAD_GRUPO`, 
+                                  " años ","(", `Porcentaje`, "%)",
+                                              sep=""))) +
+                  facet_wrap(~`Condicion`, ncol = 2) +
+                  theme_bw()  +
+                  theme(axis.text.x = element_text(size = rel(0.8), 
+                                                           angle = 45)) +
+  #                  strip.background = element_rect(fill = "white")) +
+                  scale_fill_brewer(palette = "Dark2") +
+                  xlab("Grupo de Edad") + 
+                  ylab("% de Casos Positivos")                               
+
+  } ## end big loop
 
 
 ```

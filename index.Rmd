@@ -51,7 +51,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200415COVID19MEXICO.csv")
+dta <- read_csv("Data/200416COVID19MEXICO.csv")
 
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -115,9 +115,9 @@ dta[[x]] <- str_to_title(dta[[x]])
 
 ## Replace values of SI_NO variables
 dta.si_no <- read_excel(filenm.catalogs, "Catálogo SI_NO")
-for(x in c("INTUBADO", "NEUMONIA", "EMBARAZO", "HABLA_LENGUA_INDI",
+for(x in c("INTUBADO", "NEUMONIA", "EMBARAZO", "HABLA_LENGUA_INDIG",
            "DIABETES", "EPOC", "ASMA", "INMUSUPR", "HIPERTENSION",
-           "OTRA_CON", "CARDIOVASCULAR", "OBESIDAD", "RENAL_CRONICA",
+           "OTRA_COM", "CARDIOVASCULAR", "OBESIDAD", "RENAL_CRONICA",
            "TABAQUISMO", "OTRO_CASO")){
   dta[[x]] <- vrepl(dta[[x]], dta.si_no$CLAVE,
                                     dta.si_no$DESCRIPCIÓN) 

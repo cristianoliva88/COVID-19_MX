@@ -120,7 +120,7 @@ dta.si_no <- read_excel(filenm.catalogs, "Catálogo SI_NO")
 for(x in c("INTUBADO", "NEUMONIA", "EMBARAZO", "HABLA_LENGUA_INDIG",
            "DIABETES", "EPOC", "ASMA", "INMUSUPR", "HIPERTENSION",
            "OTRA_COM", "CARDIOVASCULAR", "OBESIDAD", "RENAL_CRONICA",
-           "TABAQUISMO", "OTRO_CASO")){
+           "TABAQUISMO", "OTRO_CASO", "UCI")){
   dta[[x]] <- vrepl(dta[[x]], dta.si_no$CLAVE,
                                     dta.si_no$DESCRIPCIÓN) 
   dta[[x]] <- factor(dta[[x]], levels = c("SI","NO", "NO APLICA",
@@ -174,6 +174,7 @@ plot.tasatotal <- NULL
 plot.sector <- NULL
 plot.possex <- NULL
 plot.condicion <- NULL
+plot.intub <- NULL
 
 
 #### FOR TABLES OF CASOS EN PAIS MEXICO
@@ -320,8 +321,10 @@ for(x in grp_names){
      plot.sector[[x]] <- tbl.sectortmp %>% ggplot(aes(x = `SECTOR`, 
                                                       y = `Casos`)) + 
                           geom_bar(stat = "identity", 
-                                   aes(text = paste(`Casos`, " casos ", 
-                                              "(", `Porcentaje`, "%)", sep="")), 
+                                   aes(text = paste(`Casos`, 
+                                                    " casos atendidos en ", 
+                                                    `SECTOR`,
+                                              " (", `Porcentaje`, "%)", sep="")), 
                                    fill = "darkblue") + 
                           theme_bw() + 
                           theme(axis.text.x = element_text(size = rel(0.8), 
@@ -330,7 +333,7 @@ for(x in grp_names){
                           ylab("Número de Casos") 
      
      
-     #### FOR STATS ON POSITIVE CASES
+     #### FOR STATS ON POSITIVE CASES BY EDAD/SEXO
     tbl.possextmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2") %>%
           group_by(`EDAD_GRUPO`, `SEXO`, .drop = FALSE) %>%
             summarise("Casos" = n()) %>% ungroup() %>%
@@ -373,12 +376,39 @@ for(x in grp_names){
                   facet_wrap(~`Condicion`, ncol = 2) +
                   theme_bw()  +
                   theme(axis.text.x = element_text(size = rel(0.8), 
-                                                           angle = 45)) +
-  #                  strip.background = element_rect(fill = "white")) +
+                                                           angle = 45),
+                        strip.text.x = element_text(face = "bold",
+                                                    size = rel(0.9)),
+                        strip.background = element_rect(size=1)) +
                   scale_fill_brewer(palette = "Dark2") +
                   xlab("Grupo de Edad") + 
-                  ylab("% de Casos Positivos")                               
-
+                  ylab("% de Decesos por Enfermedad")    
+      
+     
+    #### INTUBADOS AND UCI
+    tbl.intubtmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2") %>%
+                      group_by(`INTUBADO`, `UCI`, .drop = FALSE) %>%
+            summarise("Casos" = n()) %>% ungroup() %>%
+              mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2))
+    
+    plot.intub[[x]] <- tbl.intubtmp %>% ggplot(aes(x = `INTUBADO`, 
+                                                 y = `Casos`, 
+                                                 fill = `UCI`)) +
+                  geom_bar(stat = "identity", 
+                                   aes(text = paste(`Casos`, 
+                                  " casos ",  `INTUBADO`, " intubados",
+                                  " y ", `UCI`, " en UCI (", `Porcentaje`, "%)",
+                                              sep=""))) +
+                  theme_bw() +
+                  theme(axis.text.x = element_text(
+                                        size = rel(0.8), angle = 45)) +
+                  scale_fill_brewer(palette = "Dark2") +
+                  xlab("¿INTUBADO?") + 
+                  ylab("Número de Casos") 
+    
+    ggplotly(plot.intub[[x]], tooltip = "text")
+     
+     
   } ## end big loop
 
 

@@ -43,6 +43,14 @@ htmltools::tagList( ggplotly(plot.possex[[x]], tooltip = "text",
 
 cat("\n\n")
 
+cat(paste("## Gráfica de Casos Positivos Intubados y en UCI \n\n"))
+cat("\n\n")
+htmltools::tagList( ggplotly(plot.intub[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "v")) )
+
+cat("\n\n")
+
 cat(paste("## Gráfica de Decesos por Enfermedad/Edad \n\n"))
 cat("\n\n")
 htmltools::tagList( ggplotly(plot.condicion[[x]], tooltip = "text") %>%
@@ -127,6 +135,12 @@ cat("\n\n")
   print(htmltools::tagList( ggplotly(plot.possex[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v", x = 0)) ))
+  
+  cat(paste("## Gráfica de Casos Positivos Intubados y en UCI \n\n"))
+  cat("\n\n")
+  print(htmltools::tagList( ggplotly(plot.intub[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "v")) ))
   
   cat(paste("## Gráfica de Decesos por Enfermedad/Edad \n\n"))
   cat("\n\n")

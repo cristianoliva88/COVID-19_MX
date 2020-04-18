@@ -1,5 +1,5 @@
 --- 
-title: "Análisis del COVID-19 en México"
+title: "Análisis de Casos de COVID-19 en México"
 author: |
   <a href=http://cristianoliva88.github.io/website> Cristian Oliva Avilés </a>
 date: "Última actualización: `r format(Sys.Date(), '%b %d %Y')`"

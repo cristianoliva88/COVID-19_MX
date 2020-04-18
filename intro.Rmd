@@ -144,10 +144,8 @@ cat("\n\n")
   
   cat(paste("## Gráfica de Decesos por Enfermedad/Edad \n\n"))
   cat("\n\n")
-  if(x != "Colima"){
   print(htmltools::tagList( ggplotly(plot.condicion[[x]], tooltip = "text") %>%
-                      layout(height = 400)))}
-  else{cat("No hay decesos confirmados a la fecha. \n\n")}
+                      layout(height = 400)))
   
   cat(paste("## Gráfica de Casos/Pruebas por Día  \n\n"))
   cat("\n\n")

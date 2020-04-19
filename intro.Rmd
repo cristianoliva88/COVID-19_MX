@@ -8,17 +8,12 @@ cat("\n\n")
 cat(paste("## Gráfica Comparativa de Casos Positivos \n\n"))
 cat("\n\n")
 htmltools::tagList( ggplotly(plot.poscompstate[[x]], tooltip = "text",
-                             dynamicTicks = TRUE) %>%
-                      layout(height = 710, legend = 
-                               list(orientation = "h", x=0, y = -0.2)))
+                             dynamicTicks = TRUE) ) #%>%
+            #          layout(height = 710, legend = 
+            #                   list(orientation = "h")))
 
 
-cat("&nbsp; \n\n
-    &nbsp; \n\n
-    &nbsp; \n\n
-    &nbsp; \n\n
-    &nbsp; \n\n
-    &nbsp; \n\n")
+cat("\n\n")
 
 cat(paste("## Gráfica Comparativa de Tasa de Incidencia (por cada 100mil hab) \n\n"))
 cat("\n\n")
@@ -182,7 +177,7 @@ cat("\n\n")
 
 ```
 
-```{r state}
+```{r state, eval=F}
 grp_names_state <- grp_names[grp_names != "Nacional"]
 for(x in grp_names_state){
   

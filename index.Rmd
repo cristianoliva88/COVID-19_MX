@@ -414,13 +414,15 @@ for(x in grp_names){
                                             !is.na(`FECHA_DEF`)) %>%
                           mutate("Diasparadeceso" = `FECHA_DEF` - `FECHA_SINTOMAS`) %>%
                           group_by(`Diasparadeceso`) %>%
-                          summarise("Casos" = n())
+                          summarise("Casos" = n()) %>%  ungroup() %>%
+                    mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2))
+    
     
     plot.time2death[[x]] <- tbl.time2deathtmp %>% ggplot(aes(x = `Diasparadeceso`,
                                                              y = `Casos`)) +
                   geom_bar(stat = "identity", fill = "darkblue",
                                  aes(text = paste(`Casos`, " fallecieron en ",`Diasparadeceso`, 
-                                  " dias", sep=""))) +
+                                  " dias ", "(", `Porcentaje`, "%)", sep=""))) +
                   theme_bw() +
                   xlab("Días entre inicio de síntomas y deceso") + 
                   ylab("Número de Casos")

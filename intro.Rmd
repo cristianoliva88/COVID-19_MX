@@ -1,3 +1,61 @@
+# Comparación de Entidades
+Para incluir sólo una entidad, haz doble click sobre ella.
+```{r compestados}
+x <- "Nacional"
+cat("\n\n")
+
+
+cat(paste("## Gráfica Comparativa de Casos Positivos \n\n"))
+cat("\n\n")
+htmltools::tagList( ggplotly(plot.poscompstate[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                      layout(legend = list(orientation = "v"))) 
+
+cat("\n\n")
+
+cat(paste("## Gráfica Comparativa de Tasa de Incidencia (por cada 100mil hab) \n\n"))
+cat("\n\n")
+htmltools::tagList( ggplotly(plot.poscompstatetasa[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                      layout(legend = list(orientation = "v"))) 
+
+cat("\n\n")
+
+cat(paste("## Gráfica Comparativa de Decesos \n\n"))
+cat("\n\n")
+htmltools::tagList( ggplotly(plot.dececompstate[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                      layout(legend = list(orientation = "v"))) 
+
+cat("\n\n")
+
+#cat(paste("## Gráfica Comparativa de Tasa de Decesos (por cada 100mil hab) \n\n"))
+#cat("\n\n")
+#htmltools::tagList( ggplotly(plot.dececompstate[[x]], tooltip = "text",
+#                             dynamicTicks = TRUE) %>%
+#                      layout(legend = list(orientation = "v"))) 
+
+#cat("\n\n")
+
+cat(paste("## Gráfica Comparativa de Casos Pendientes \n\n"))
+cat("\n\n")
+htmltools::tagList( ggplotly(plot.pendcompstate[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                      layout(legend = list(orientation = "v"))) 
+
+cat("\n\n")
+
+#cat(paste("## Gráfica Comparativa de Tasa de Casos Pendientes (por cada 100mil hab) \n\n"))
+#cat("\n\n")
+#htmltools::tagList( ggplotly(plot.pendcompstate[[x]], tooltip = "text",
+#                             dynamicTicks = TRUE) %>%
+#                      layout(legend = list(orientation = "v"))) 
+
+#cat("\n\n")
+
+
+```
+
 
 # Nacional
 ```{r national}
@@ -84,8 +142,8 @@ cat(paste("## Gráfica de Tasa de Positividad y Letalidad \n\n"))
 cat("La tasa de Positividad al día d está calculada de acuerdo a la fórmula 
     $$ \\text{Tasa Positividad al día d} = \\frac{\\text{casos positivos al día d}}{\\text{casos positivos al día d + casos no positivos al día d}}.$$
     La tasa de Letalidad al día d está calculada de acuerdo a la fórmula 
-    $$ \\text{Tasa Mortalidad al día d} = \\frac{\\text{decesos al día d}}{\\text{casos positivos al día d}}.$$ 
-    **Importante:** dado que los casos positivos son obtenidos mediante un muestreo de la población de casos sospechosos, la tasa de mortalidad es en realidad menor a la calculada. \n\n")
+    $$ \\text{Tasa Letalidad al día d} = \\frac{\\text{decesos al día d}}{\\text{casos positivos al día d}}.$$ 
+    **Importante:** dado que los casos positivos son obtenidos mediante un muestreo de la población de casos sospechosos, la tasa de letalidad es en realidad menor a la calculada. \n\n")
 htmltools::tagList( ggplotly(plot.tasatotal[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v",
@@ -190,8 +248,8 @@ cat("&nbsp; \n\n
   cat("La tasa de Positividad al día d está calculada de acuerdo a la fórmula 
     $$ \\text{Tasa Positividad al día d} = \\frac{\\text{casos positivos al día d}}{\\text{casos positivos al día d + casos no positivos al día d}}.$$
     La tasa de Letalidad al día d está calculada de acuerdo a la fórmula 
-    $$ \\text{Tasa Mortalidad al día d} = \\frac{\\text{decesos al día d}}{\\text{casos positivos al día d}}.$$ 
-    **Importante:** dado que los casos positivos son obtenidos mediante un muestreo de la población de casos sospechosos, la tasa de mortalidad es en realidad menor a la calculada. \n\n")
+    $$ \\text{Tasa Letalidad al día d} = \\frac{\\text{decesos al día d}}{\\text{casos positivos al día d}}.$$ 
+    **Importante:** dado que los casos positivos son obtenidos mediante un muestreo de la población de casos sospechosos, la tasa de letalidad es en realidad menor a la calculada. \n\n")
   print(htmltools::tagList( ggplotly(plot.tasatotal[[x]], tooltip = "text",
                                      dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v", x = 0)) )) 

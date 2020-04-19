@@ -22,6 +22,8 @@ library(readxl)
 library(knitr)
 library(plotly)
 library(stringr)
+library(RColorBrewer)
+
 
 knitr::opts_chunk$set(warning = FALSE, 
                       message = FALSE, echo = FALSE, 
@@ -141,6 +143,20 @@ dta <- dta %>% mutate("EDAD_GRUPO" =
                       )
 
 
+#### ADD STATE POPULATION
+poblstate <- data.frame("grp" = c("Nacional",
+                                          sort(unique(dta$`ENTIDAD_RES`))),
+                        "POBLACION_ENT" = 
+                          c(127792286,
+                            1434635, 3634868, 804708, 1000617,
+                            5730367, 3801487, 9018645, 3218720, 
+                            785153, 1868996, 6228175, 3657048, 
+                            3086414, 8409693, 17427790, 4825401,
+                            2044058, 1288571, 5610153, 4143593, 
+                            6604451, 2279637, 1723259,2866142, 
+                            3156674, 3074745, 2572287, 3650602,
+                            1380011, 8539862, 2259098,1666426)/100000
+)
 
 #### CREATE GROUPS FOR WHICH SIMILAR ANALYSIS
 #### WILL BE PERFORMED
@@ -148,6 +164,7 @@ dta1 <- dta %>% mutate(grp = `ENTIDAD_RES`)
 dta0 <- dta1 %>% mutate(grp = "Nacional") 
 dta_comb <- rbind(dta1, dta0)
 dta_comb[["grp"]] <- as.factor(dta_comb[["grp"]])
+dta_comb <- left_join(dta_comb, poblstate, by = "grp")
 
 ## Split by grp
 dta_split <- with(dta_comb, split(dta_comb, grp, drop = TRUE))
@@ -160,6 +177,8 @@ grp_names <- names(dta_split)
 date.first <- head(sort(unique(dta$FECHA_INGRESO)),1)
 date.last <- tail(sort(unique(dta$FECHA_INGRESO)),1)
 dta.blank <- data.frame("FECHA_INGRESO" = seq(date.first, date.last, 1))
+dta.blank.compstate <- expand.grid("FECHA_INGRESO" = dta.blank$FECHA_INGRESO,
+                                   "grp" = sort(unique(dta_comb$grp)))
 
 tbl.pais <- NULL
 tbl.entidades <- NULL
@@ -176,6 +195,10 @@ plot.possex <- NULL
 plot.condicion <- NULL
 plot.intub <- NULL
 plot.time2death <- NULL
+plot.poscompstate <- NULL
+plot.poscompstatetasa <- NULL
+plot.pendcompstate <- NULL
+plot.dececompstate <- NULL
 
 
 #### FOR TABLES OF CASOS EN PAIS MEXICO
@@ -196,6 +219,83 @@ tbl.entidades[["Nacional"]] <- dta_split[["Nacional"]]  %>%
                 "Decesos" = sum(!is.na(`FECHA_DEF`) & 
                                   `RESULTADO` == "Positivo SARS-CoV-2")) %>%
                   rename('Entidad Residencia' = ENTIDAD_RES)
+
+#### GRAPH FOR TREND BY STATE
+tbl.compstatetmp <- dta_comb %>% group_by(`grp`, `FECHA_INGRESO`) %>%
+                summarise("Nuevos Positivo" = sum(`RESULTADO` == 
+                                                    "Positivo SARS-CoV-2"),
+                "Nuevos No Positivo" = sum(`RESULTADO` == 
+                                             "No positivo SARS-CoV-2"),
+                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"),
+                "Nuevos Decesos" = sum(!is.na(`FECHA_DEF`) & 
+                                  `RESULTADO` == "Positivo SARS-CoV-2")) 
+tbl.compstatetmp <- left_join(dta.blank.compstate, tbl.compstatetmp,
+                                       by=c("grp", "FECHA_INGRESO")) %>%
+                    left_join(poblstate, by = "grp")
+tbl.compstatetmp[is.na(tbl.compstatetmp)] <- 0
+    
+tbl.compstatetmp <- tbl.compstatetmp %>% group_by(`grp`) %>%
+        mutate("Total Positivo" = cumsum(`Nuevos Positivo`),
+              "Total No Positivo" = cumsum(`Nuevos No Positivo`),
+              "Total Pendientes" = cumsum(`Pendientes`),
+              "Total Decesos" = cumsum(`Nuevos Decesos`),
+              "Tasa Positivo" = round(`Total Positivo`/`POBLACION_ENT`, 2))
+
+numcolors <- 33
+mycolors <- colorRampPalette(brewer.pal(8, "Set1"))(numcolors)
+
+plot.poscompstate[["Nacional"]] <- tbl.compstatetmp %>%
+                      ggplot(aes(x = `FECHA_INGRESO`, y = `Total Positivo`,
+                                 grp = `grp`, color = `grp`)) +
+                        geom_line() +
+                        geom_point(aes(text = paste(`Total Positivo`, 
+                               'casos positivos en', `grp`, 'hasta',
+                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        scale_color_manual(values = mycolors) + 
+                        xlab("Fecha de Ingreso") + 
+                        ylab("Total Casos Positivos") 
+
+plot.pendcompstate[["Nacional"]] <- tbl.compstatetmp %>%
+                      ggplot(aes(x = `FECHA_INGRESO`, y = `Total Pendientes`,
+                                 grp = `grp`, color = `grp`)) +
+                        geom_line() +
+                        geom_point(aes(text = paste(`Total Pendientes`, 
+                               'casos pendientes en', `grp`, 'hasta',
+                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        scale_color_manual(values = mycolors) + 
+                        xlab("Fecha de Ingreso") + 
+                        ylab("Total Casos Pendientes") 
+
+plot.dececompstate[["Nacional"]] <- tbl.compstatetmp %>%
+                      ggplot(aes(x = `FECHA_INGRESO`, y = `Total Decesos`,
+                                 grp = `grp`, color = `grp`)) +
+                        geom_line() +
+                        geom_point(aes(text = paste(`Total Decesos`, 
+                               'casos positivos en', `grp`, 'hasta',
+                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        scale_color_manual(values = mycolors) + 
+                        xlab("Fecha de Fallecimiento") + 
+                        ylab("Total Decesos") 
+
+plot.poscompstatetasa[["Nacional"]] <- tbl.compstatetmp %>%
+                      ggplot(aes(x = `FECHA_INGRESO`, y = `Tasa Positivo`,
+                                 grp = `grp`, color = `grp`)) +
+                        geom_line() +
+                        geom_point(aes(text = paste(`Tasa Positivo`, 
+                               ' tasa de incidencia en', `grp`, 'hasta',
+                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        scale_color_manual(values = mycolors) + 
+                        xlab("Fecha de Ingreso") + 
+                        ylab("Tasa de Incidencia por cada 100mil habitantes") 
+
   
 #### START LOOP  
 for(x in grp_names){

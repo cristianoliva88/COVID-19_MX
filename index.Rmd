@@ -27,7 +27,8 @@ library(RColorBrewer)
 
 knitr::opts_chunk$set(warning = FALSE, 
                       message = FALSE, echo = FALSE, 
-                      results = 'asis', purl = FALSE)
+                      results = 'asis', 
+                      purl = FALSE)
 
 #### FUNCTION TO REPLACE VALUES
 vrepl <- function(x, list, values){

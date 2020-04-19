@@ -9,9 +9,16 @@ cat(paste("## Gráfica Comparativa de Casos Positivos \n\n"))
 cat("\n\n")
 htmltools::tagList( ggplotly(plot.poscompstate[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
-                      layout(legend = list(orientation = "v"))) 
+                      layout(height = 710, legend = 
+                               list(orientation = "h", x=0, y = -0.2)))
 
-cat("\n\n")
+
+cat("&nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n")
 
 cat(paste("## Gráfica Comparativa de Tasa de Incidencia (por cada 100mil hab) \n\n"))
 cat("\n\n")
@@ -62,7 +69,7 @@ cat("\n\n")
 x <- "Nacional"
 
 cat(paste("## Resumen Actual de Casos en México \n \n"))
-ktbl <- tbl.pais[[x]] %>% 
+ktbl <- tbl.pais[[x]] %>%
           knitr::kable(format = "html",
                    digits = 0,
                    row.names = F,
@@ -153,6 +160,7 @@ cat("\n\n")
 
 cat(paste("## Casos por Entidad de Residencia \n \n"))
 ktbl <- tbl.entidades[[x]] %>% 
+          arrange(desc(`Positivo`)) %>%
           knitr::kable(format = "html",
                    digits = 0,
                    row.names = F,
@@ -256,6 +264,7 @@ cat("&nbsp; \n\n
   
   cat(paste("## Casos por Municipio de Residencia \n \n"))
   ktbl <- tbl.municipios[[x]] %>% 
+              arrange(desc(`Positivo`)) %>%
     knitr::kable(format = "html",
                   digits = 0,
                  row.names = F,

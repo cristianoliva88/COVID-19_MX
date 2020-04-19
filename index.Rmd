@@ -51,7 +51,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200417COVID19MEXICO.csv")
+dta <- read_csv("Data/200418COVID19MEXICO.csv")
 
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -175,6 +175,7 @@ plot.sector <- NULL
 plot.possex <- NULL
 plot.condicion <- NULL
 plot.intub <- NULL
+plot.time2death <- NULL
 
 
 #### FOR TABLES OF CASOS EN PAIS MEXICO
@@ -400,15 +401,31 @@ for(x in grp_names){
                                   " y ", `UCI`, " en UCI (", `Porcentaje`, "%)",
                                               sep=""))) +
                   theme_bw() +
-                  theme(axis.text.x = element_text(
+                  theme(legend.text = element_text(size = rel(0.7)),
+                        axis.text.x = element_text(
                                         size = rel(0.8), angle = 45)) +
                   scale_fill_brewer(palette = "Dark2") +
                   xlab("¿INTUBADO?") + 
                   ylab("Número de Casos") 
     
-    ggplotly(plot.intub[[x]], tooltip = "text")
+    
+    #### TO EVALUATE TIME FROM FIRST SYMPTOMS TO DEATH
+    tbl.time2deathtmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2" & 
+                                            !is.na(`FECHA_DEF`)) %>%
+                          mutate("Diasparadeceso" = `FECHA_DEF` - `FECHA_SINTOMAS`) %>%
+                          group_by(`Diasparadeceso`) %>%
+                          summarise("Casos" = n())
+    
+    plot.time2death[[x]] <- tbl.time2deathtmp %>% ggplot(aes(x = `Diasparadeceso`,
+                                                             y = `Casos`)) +
+                  geom_bar(stat = "identity", fill = "darkblue",
+                                 aes(text = paste(`Casos`, " fallecieron en ",`Diasparadeceso`, 
+                                  " dias", sep=""))) +
+                  theme_bw() +
+                  xlab("Días entre inicio de síntomas y deceso") + 
+                  ylab("Número de Casos")
      
-     
+
   } ## end big loop
 
 

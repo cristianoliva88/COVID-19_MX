@@ -17,8 +17,8 @@ ktbl <- tbl.pais[[x]] %>%
 cat("\n\n")  
 
 
-cat(paste("## Gráfica de Nuevos Casos por Día \n\n"))
-cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de ingreso. Los decesos son contabilizados respecta a la fecha de fallecimiento. En cuantos a los casos positivos, ten en cuenta que los días más recientes añadirán aquellos casos pendientes que sean determinados positivos una vez que el resultado de la prueba esté disponible. \n\n")
+cat(paste("## Gráfica de Nuevos Casos \n\n"))
+cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de ingreso del caso. Los decesos son contabilizados respecta a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
 htmltools::tagList( ggplotly(plot.casesnew[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v",
@@ -27,7 +27,7 @@ htmltools::tagList( ggplotly(plot.casesnew[[x]], tooltip = "text",
 cat("\n\n")
 
 cat(paste("## Gráfica de Acumulado de Casos \n\n"))
-cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de ingreso. Los decesos son contabilizados respecta a la fecha de fallecimiento. En cuantos a los casos positivos, ten en cuenta que los días más recientes añadirán aquellos casos pendientes que sean determinados positivos una vez que el resultado de la prueba esté disponible. \n\n")
+cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de ingreso del caso. Los decesos son contabilizados respecta a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
 htmltools::tagList( ggplotly(plot.casestotal[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v",
@@ -54,19 +54,38 @@ cat("\n\n")
 cat(paste("## Gráfica de Decesos por Enfermedad/Edad \n\n"))
 cat("\n\n")
 htmltools::tagList( ggplotly(plot.condicion[[x]], tooltip = "text") %>%
-                      layout(height = 400))
+                      layout(height = 750))
+
+cat("&nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n")
+
+cat(paste("## Gráfica de Inicio de Sintomas y Deceso \n\n"))
+cat("\n\n")
+htmltools::tagList( ggplotly(plot.time2death[[x]], tooltip = "text",
+                             dynamicTicks = TRUE))
 
 cat("\n\n")
 
-cat(paste("## Gráfica de Casos/Pruebas por Día  \n\n"))
-cat("\n\n")
+cat(paste("## Gráfica de Casos/Pruebas por Fecha de Ingreso  \n\n"))
+cat("El número de casos/pruebas está calculado como la suma de casos Positivos, No Positivos y Pendientes por Fecha de Ingreso de los casos.  \n\n")
 htmltools::tagList( ggplotly(plot.pruebasnew[[x]], tooltip = "text",
                              dynamicTicks = TRUE) )
 
 cat("\n\n")
 
-cat(paste("## Gráfica de Tasa Positividad y Letalidad \n\n"))
-cat("\n\n")
+cat(paste("## Gráfica de Tasa de Positividad y Letalidad \n\n"))
+cat("La tasa de Positividad al día d está calculada de acuerdo a la fórmula 
+    $$ \\text{Tasa Positividad al día d} = \\frac{\\text{casos positivos al día d}}{\\text{casos positivos al día d + casos no positivos al día d}}.$$
+    La tasa de Letalidad al día d está calculada de acuerdo a la fórmula 
+    $$ \\text{Tasa Mortalidad al día d} = \\frac{\\text{decesos al día d}}{\\text{casos positivos al día d}}.$$ 
+    **Importante:** dado que los casos positivos son obtenidos mediante un muestreo de la población de casos sospechosos, la tasa de mortalidad es en realidad menor a la calculada. \n\n")
 htmltools::tagList( ggplotly(plot.tasatotal[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v",
@@ -116,16 +135,16 @@ for(x in grp_names_state){
                   full_width = F)
     print(ktbl)
 
-cat("\n\n")    
-  cat("## Gráfica de Nuevos Casos por Día \n\n")
-  cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de ingreso. Los decesos son contabilizados respecta a la fecha de fallecimiento. En cuantos a los casos positivos, ten en cuenta que los días más recientes añadirán aquellos casos pendientes que sean determinados positivos una vez que el resultado de la prueba esté disponible. \n\n")
+  cat("\n\n")    
+  cat(paste("## Gráfica de Nuevos Casos \n\n"))
+  cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de ingreso del caso. Los decesos son contabilizados respecta a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
 
   print(htmltools::tagList( ggplotly(plot.casesnew[[x]], tooltip = "text",
                                      dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v", x = 0)) ))
   
   cat("## Gráfica de Acumulado de Casos \n\n")
-  cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de ingreso. Los decesos son contabilizados respecta a la fecha de fallecimiento. En cuantos a los casos positivos, ten en cuenta que los días más recientes añadirán aquellos casos pendientes que sean determinados positivos una vez que el resultado de la prueba esté disponible. \n\n")
+  cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de ingreso del caso. Los decesos son contabilizados respecta a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
   print(htmltools::tagList( ggplotly(plot.casestotal[[x]], tooltip = "text",
                                      dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v", x = 0)) ))
@@ -145,15 +164,34 @@ cat("\n\n")
   cat(paste("## Gráfica de Decesos por Enfermedad/Edad \n\n"))
   cat("\n\n")
   print(htmltools::tagList( ggplotly(plot.condicion[[x]], tooltip = "text") %>%
-                      layout(height = 400)))
+                      layout(height = 750)))
   
-  cat(paste("## Gráfica de Casos/Pruebas por Día  \n\n"))
+cat("&nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n
+    &nbsp; \n\n")
+
+  cat(paste("## Gráfica de Inicio de Sintomas y Deceso \n\n"))
   cat("\n\n")
+  print(htmltools::tagList( ggplotly(plot.time2death[[x]], tooltip = "text",
+                             dynamicTicks = TRUE)))
+
+  cat(paste("## Gráfica de Casos/Pruebas por Fecha de Ingreso  \n\n"))
+  cat("El número de casos/pruebas está calculado como la suma de casos Positivos, No Positivos y Pendientes por Fecha de Ingreso de los casos.  \n\n")
   print(htmltools::tagList( ggplotly(plot.pruebasnew[[x]], tooltip = "text",
                              dynamicTicks = TRUE) ) )
   
   cat("## Gráfica de Tasa Positividad y Letalidad \n\n")
-  cat(" \n\n")
+  cat("La tasa de Positividad al día d está calculada de acuerdo a la fórmula 
+    $$ \\text{Tasa Positividad al día d} = \\frac{\\text{casos positivos al día d}}{\\text{casos positivos al día d + casos no positivos al día d}}.$$
+    La tasa de Letalidad al día d está calculada de acuerdo a la fórmula 
+    $$ \\text{Tasa Mortalidad al día d} = \\frac{\\text{decesos al día d}}{\\text{casos positivos al día d}}.$$ 
+    **Importante:** dado que los casos positivos son obtenidos mediante un muestreo de la población de casos sospechosos, la tasa de mortalidad es en realidad menor a la calculada. \n\n")
   print(htmltools::tagList( ggplotly(plot.tasatotal[[x]], tooltip = "text",
                                      dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v", x = 0)) )) 

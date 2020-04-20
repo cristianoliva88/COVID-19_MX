@@ -54,7 +54,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200418COVID19MEXICO.csv")
+dta <- read_csv("Data/200419COVID19MEXICO.csv")
 
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -325,7 +325,7 @@ for(x in grp_names){
               "Total Decesos" = cumsum(`Nuevos Decesos`),
               "Nuevas Pruebas" = `Nuevos Positivo` + `Nuevos No Positivo` +
                                        `Pendientes`)
-  ans.tmp <- left_join(dta.blank, ans.tmp, by="FECHA_INGRESO")
+  ans.tmp <- left_join(dta.blank, ans.tmp, by="FECHA_INGRESO") 
   ans.tmp[is.na(ans.tmp)] <- 0
   tbl.resultado[[x]] <- ans.tmp
   
@@ -384,6 +384,7 @@ for(x in grp_names){
     
     
     #### FOR JOINT GRAPHS OF TASA
+    pobstate.grp <- poblstate[which(poblstate$grp == x), "POBLACION_ENT"]
     tbl.tasa[[x]] <- tbl.resultado[[x]] %>% 
               mutate("Tasa Positividad por Dia" = `Nuevos Positivo`/
                               (`Nuevos Positivo` + `Nuevos No Positivo`),
@@ -392,14 +393,15 @@ for(x in grp_names){
                      "Tasa Letalidad por Dia" = `Nuevos Decesos`/
                               `Nuevos Positivo`,  
                       "Tasa Letalidad" = `Total Decesos`/
-                              `Total Positivo`)   
+                              `Total Positivo`,
+              "Tasa Mortalidad" = round(100*`Total Decesos`/(100000*pobstate.grp), 2))   
     
     tbl.tasatmp <- tbl.tasa[[x]] %>% 
                   gather(Tasa, Cantidad,  
-                         "Tasa Positividad por Dia":"Tasa Letalidad",
+                         "Tasa Positividad por Dia":"Tasa Mortalidad",
                                         factor_key = T)
   
-    ## Make Plot of Tasa Positividad/Letalidad
+    ## Make Plot of Tasa Positividad/Letalidad/Mortalidad
     plot.tasatotal[[x]] <-  tbl.tasatmp %>%  filter(`Tasa` %in% 
                                c("Tasa Positividad", "Tasa Letalidad")) %>%
                             ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
@@ -410,9 +412,10 @@ for(x in grp_names){
                               format(`FECHA_INGRESO`, "%d/%m")))) + 
                         theme_bw() + 
                         theme(legend.title = element_blank()) +
-                        scale_color_manual(values = c("darkblue","red")) + 
-                        xlab("Fecha de Ingreso/Fecha de Muerte") + 
-                        ylab("Tasa de Positividad y Letalidad") 
+                        scale_color_manual(values = c("darkblue","red", 
+                                                      "orange")) + 
+                        xlab("Fecha de Ingreso/Fecha de Fallecimiento") + 
+                        ylab("Tasa de Positividad, Letalidad y Mortalidad") 
     
     
     #### FOR UNIDAD MEDICA THAT OFFERED HEALTH SERVICE

@@ -11,28 +11,23 @@ htmltools::tagList( ggplotly(plot.poscompstate[[x]], tooltip = "text",
                              dynamicTicks = TRUE)  %>%
                       layout(height = 720, legend = 
                               list(orientation = "h", y=-0.2) ))
-cat("&nbsp; \n\n
-    &nbsp; \n\n
-    &nbsp; \n\n
-    &nbsp; \n\n
-    &nbsp; \n\n
-    &nbsp; \n\n")
+cat("\n\n <div style='margin-bottom:350px;'> </div> \n\n")
     
 cat(paste("## Gráfica Comparativa de Tasa de Incidencia (por cada 100mil hab) \n\n"))
 cat("\n\n")
 htmltools::tagList( ggplotly(plot.poscompstatetasa[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
-                      layout(legend = list(orientation = "v"))) 
-
-cat("\n\n")
+                      layout(height = 720, legend = 
+                              list(orientation = "h", y=-0.2) )) 
+cat("\n\n <div style='margin-bottom:350px;'> </div> \n\n")
 
 cat(paste("## Gráfica Comparativa de Decesos \n\n"))
 cat("\n\n")
 htmltools::tagList( ggplotly(plot.dececompstate[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
-                      layout(legend = list(orientation = "v"))) 
-
-cat("\n\n")
+                      layout(height = 720, legend = 
+                              list(orientation = "h", y=-0.2) )) 
+cat("\n\n <div style='margin-bottom:350px;'> </div> \n\n")
 
 #cat(paste("## Gráfica Comparativa de Tasa de Decesos (por cada 100mil hab) \n\n"))
 #cat("\n\n")
@@ -46,7 +41,8 @@ cat(paste("## Gráfica Comparativa de Casos Pendientes \n\n"))
 cat("\n\n")
 htmltools::tagList( ggplotly(plot.pendcompstate[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
-                      layout(legend = list(orientation = "v"))) 
+                      layout(height = 720, legend = 
+                              list(orientation = "h", y=-0.2) ))
 
 cat("\n\n")
 
@@ -56,7 +52,7 @@ cat("\n\n")
 #                             dynamicTicks = TRUE) %>%
 #                      layout(legend = list(orientation = "v"))) 
 
-#cat("\n\n")
+cat("\n\n <div style='margin-bottom:350px;'> </div> \n\n")
 
 
 ```

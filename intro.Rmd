@@ -9,9 +9,9 @@ cat(paste("## Gráfica Comparativa de Casos Positivos \n\n"))
 cat("\n\n")
 htmltools::tagList( ggplotly(plot.poscompstate[[x]], tooltip = "text",
                              dynamicTicks = TRUE)  %>%
-                      layout(height = 720, legend = 
-                              list(orientation = "h", y=-0.2) ))
-cat("\n\n <div style='margin-bottom:350px;'> </div> \n\n")
+                      layout(height = 800, legend = 
+                              list(orientation = "h", y=-0.1) ))
+cat("\n\n <div style='margin-bottom:420px;'> </div> \n\n")
     
 cat(paste("## Gráfica Comparativa de Tasa de Incidencia (por cada 100mil hab) \n\n"))
 cat("\n\n")

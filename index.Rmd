@@ -54,7 +54,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200421COVID19MEXICO.csv")
+dta <- read_csv("Data/200422COVID19MEXICO.csv")
 
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -318,15 +318,17 @@ for(x in grp_names){
                 "Nuevos No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
                 "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"),
                 "Nuevos Decesos" = sum(!is.na(`FECHA_DEF`) & 
-                                  `RESULTADO` == "Positivo SARS-CoV-2")) %>%
-      mutate("Total Positivo" = cumsum(`Nuevos Positivo`),
+                                  `RESULTADO` == "Positivo SARS-CoV-2"))
+  ans.tmp <- left_join(dta.blank, ans.tmp, by="FECHA_INGRESO") 
+  ans.tmp[is.na(ans.tmp)] <- 0
+  
+  ans.tmp <- ans.tmp %>%  mutate("Total Positivo" = cumsum(`Nuevos Positivo`),
               "Total No Positivo" = cumsum(`Nuevos No Positivo`),
               "Total Pendientes" = cumsum(`Pendientes`),
               "Total Decesos" = cumsum(`Nuevos Decesos`),
               "Nuevas Pruebas" = `Nuevos Positivo` + `Nuevos No Positivo` +
                                        `Pendientes`)
-  ans.tmp <- left_join(dta.blank, ans.tmp, by="FECHA_INGRESO") 
-  ans.tmp[is.na(ans.tmp)] <- 0
+  
   tbl.resultado[[x]] <- ans.tmp
   
   #### FOR JOINT GRAPHS OF CASES
@@ -401,7 +403,7 @@ for(x in grp_names){
                          "Tasa Positividad por Dia":"Tasa Mortalidad",
                                         factor_key = T)
   
-    ## Make Plot of Tasa Positividad/Letalidad/Mortalidad
+    ## Make Plot of Tasa Positividad/Letalidad
     plot.tasatotal[[x]] <-  tbl.tasatmp %>%  filter(`Tasa` %in% 
                                c("Tasa Positividad", "Tasa Letalidad")) %>%
                             ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
@@ -415,7 +417,7 @@ for(x in grp_names){
                         scale_color_manual(values = c("darkblue","red", 
                                                       "orange")) + 
                         xlab("Fecha de Ingreso/Fecha de Fallecimiento") + 
-                        ylab("Tasa de Positividad, Letalidad y Mortalidad") 
+                        ylab("Tasa de Positividad y Letalidad") 
     
     
     #### FOR UNIDAD MEDICA THAT OFFERED HEALTH SERVICE
@@ -534,6 +536,15 @@ for(x in grp_names){
 
   } ## end big loop
 
+#dta.grp <- dta_split$Nacional
+
+#kk <- dta.grp %>% mutate("FALLECIO" = ifelse(is.na(`FECHA_DEF`), "No", "Si"),
+#                         "TIEMPO_ATENCION" = 
+#                           `FECHA_INGRESO` - `FECHA_SINTOMAS`,
+#                         "Diasparadeceso" = `FECHA_DEF` - `FECHA_INGRESO`) %>%
+#                    filter(`RESULTADO` == "Positivo SARS-CoV-2") 
+    
+    
 
 ```
 

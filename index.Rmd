@@ -193,6 +193,7 @@ plot.pruebasnew <- NULL
 plot.tasatotal <- NULL
 plot.sector <- NULL
 plot.possex <- NULL
+plot.decesex <- NULL
 plot.condicion <- NULL
 plot.intub <- NULL
 plot.time2death <- NULL
@@ -460,6 +461,27 @@ for(x in grp_names){
                   ylab("% de Casos Positivos") 
     
 
+    #### FOR STATS ON DECESOS BY EDAD
+    tbl.decesextmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2" &
+                                         !is.na(`FECHA_DEF`)) %>%
+          group_by(`EDAD_GRUPO`, `SEXO`, .drop = FALSE) %>%
+            summarise("Casos" = n()) %>% ungroup() %>%
+              mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2))
+    
+    plot.decesex[[x]] <- tbl.decesextmp %>% ggplot(aes(x = `EDAD_GRUPO`, 
+                                                 y = `Porcentaje`, 
+                                                 fill = `SEXO`)) +
+                  geom_bar(stat = "identity", 
+                                   aes(text = paste(`Casos`, 
+                                  " decesos entre ",  `EDAD_GRUPO`, 
+                                  " años ","(", `Porcentaje`, "%)",
+                                              sep=""))) +
+                  theme_bw()  +
+                  scale_fill_brewer(palette = "Dark2") +
+                  xlab("Grupo de Edad") + 
+                  ylab("% de Decesos") 
+    
+    
      #### MORTALITY BY MEDICAL CONDITION AND AGE GROUP
      tbl.condiciontmp <- dtagrp %>% filter(!is.na(`FECHA_DEF`) &
                                   `RESULTADO` == "Positivo SARS-CoV-2") %>%
@@ -536,14 +558,6 @@ for(x in grp_names){
 
   } ## end big loop
 
-#dta.grp <- dta_split$Nacional
-
-#kk <- dta.grp %>% mutate("FALLECIO" = ifelse(is.na(`FECHA_DEF`), "No", "Si"),
-#                         "TIEMPO_ATENCION" = 
-#                           `FECHA_INGRESO` - `FECHA_SINTOMAS`,
-#                         "Diasparadeceso" = `FECHA_DEF` - `FECHA_INGRESO`) %>%
-#                    filter(`RESULTADO` == "Positivo SARS-CoV-2") 
-    
     
 
 ```

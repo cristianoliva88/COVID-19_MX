@@ -54,7 +54,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200422COVID19MEXICO.csv")
+dta <- read_csv("Data/200423COVID19MEXICO.csv")
 
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -557,8 +557,85 @@ for(x in grp_names){
      
 
   } ## end big loop
+```
 
+
+```{r eval=FALSE}
+     kk <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2") %>%
+       mutate("FALLECIO" = ifelse(!is.na(`FECHA_DEF`), "Si", "No" ),
+                             "TIEMPO_ATENCION" = `FECHA_INGRESO` - `FECHA_SINTOMAS`,
+              "COMORB" =  paste(`DIABETES`, `EPOC`, `ASMA`, `INMUSUPR`, `HIPERTENSION`,
+                                `OTRA_COM`, `CARDIOVASCULAR`, `OBESIDAD`, `RENAL_CRONICA`,
+                                `TABAQUISMO`, sep="."),
+              "COMORB2" = grepl("SI", `COMORB`),
+              "COMORB3" = str_count(`COMORB`, "SI"))
+                
+
+    ## PROBABILIDAD DE FALLECER DADO QUE ERES COVID POSITIVO Y TIENES 
+    ## X NUMERO DE COMORBILIDADES
+    table(kk$COMORB3, is.na(kk$FECHA_DEF))
+    x <- c(223, 297, 238, 128 + 56 + 24 + 3 + 1 + 0 + 0 + 0)
+    y <- c(4961, 2672, 1283, 469 + 144 + 30 + 10 + 1 + 1 + 2 + 1)
+    x/(x+y)
     
-
+    ## PROBABILIDAD DE SER HOSPITALIZADO DADO QUE ERES COVID POSITIVO Y TIENES 
+    ## X NUMERO DE COMORBILIDADES
+    table(kk$COMORB3, kk$TIPO_PACIENTE)
+    x <- c(1327, 1268, 831, 365 +148 + 43 + 12 + 1 + 1 + 1 + 0)
+    y <- c(3857, 1701, 690, 232 + 52 + 11 + 1 + 1 + 0 + 1 + 1)
+    x/(x+y)
+    
+    ## PROBABILIDAD DE PRESENTAR NEUMONIA DADO QUE ERES COVID POSITIVO Y TIENES
+    ## X NUMERO DE COMORBILIDADES
+    table(kk$COMORB3, kk$NEUMONIA)
+    x <- c(969, 987, 610, 291 + 119 + 36 + 9 + 1 + 1 + 0)
+    y <- c(4215, 1982, 911, 306 + 81 + 18 + 4 + 1 + 0 + 1 + 1)
+    x/(x+y)
+    
+    ## PROBABILIDAD DE FALLECER DADO QUE ERES COVID POSITIVO Y PRESENTAS NEUMONIA
+    table(kk$COMORB3, is.na(kk$FECHA_DEF), kk$NEUMONIA)
+    x <- c(166, 221, 177, 98+48+19+3+1+0+0+0)
+    y <- c(803, 766, 433, 193+71+17+6+0+1+1+0)
+    x/(x+y)
+    
+    ## PROBABILIDAD DE FALLECER DADO QUE ERES COVID POSITIVO Y ESTAS HOSPITALIZADO
+    table(kk$COMORB3, is.na(kk$FECHA_DEF), kk$TIPO_PACIENTE)
+    x <- c(200, 266, 220, 110+53+22+2+1+0+0+0)
+    y <- c(1127, 1002, 611, 255+95+21+10+0+1+1+0)
+    x/(x+y)
+    
+    kk2 <- kk %>% filter(`TIPO_PACIENTE` == "HOSPITALIZADO") %>%
+      mutate("COMORB_NUMB" = ifelse(`COMORB3`>=3, ">=3", `COMORB3`),
+             "COMORB_NUMB" = factor(`COMORB_NUMB`, levels=c("0","1", "2",">=3"))) %>%
+          group_by(`COMORB_NUMB`) %>%
+          summarise("Porcentaje" =  round( 100*sum(!is.na(`FECHA_DEF`))/n(),2 ))
+    
+   plot.kk2 <- kk2 %>% ggplot(aes(x = `COMORB_NUMB`, y=`Porcentaje`)) + 
+                geom_bar(stat = "identity", fill = "darkblue") +
+                  theme_bw() +
+                 # theme(legend.text = element_text(size = rel(0.7)),
+                #        axis.text.x = element_text(
+                #                        size = rel(0.8), angle = 45)) +
+                  xlab("# de comorbilidades por paciente") + 
+                  ylab("% de decesos que son \n COVID-19 positivos y hospitalizados") 
+    
+    ## PROBABILIDAD DE SER INTUBADO DADO QUE ERES COVID POSITIVO Y ESTAS HOSPITALIZADO
+    table(kk$COMORB3, kk$INTUBADO, kk$TIPO_PACIENTE)
+    x <- c(135, 144, 112, 52, 19+2+1+1+0+0+0)
+    y <- c(1192,1123, 719, 313, 129+41+11+0+1+1+0)
+    x/(x+y)
+    
+    ## PROBABILIDAD DE SER INTUBADO DADO QUE ERES COVID POSITIVO Y NEUMONIA
+    table(kk$COMORB3, kk$INTUBADO, kk$NEUMONIA)
+    x <- c(128, 137, 107, 51, 17+2+1+1+0+0+0)
+    y <- c(721,724,453,212,93+32+7+0+1+1+0)
+    x/(x+y)
+    
+    ## PROBABILIDAD DE FALLECER DADO QUE ERES COVID POSITIVO E INTUBADO
+    table(kk$COMORB3, is.na(kk$FECHA_DEF), kk$INTUBADO)
+    x <- c(54, 71, 64, 25+11+2+0+1+0+0+0)
+    y <- c(81,73,48,27+8+0+1+0+0+0+0)
+    x/(x+y)
+    
 ```
 

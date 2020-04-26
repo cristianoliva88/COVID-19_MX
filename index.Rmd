@@ -183,6 +183,7 @@ dta.blank.compstate <- expand.grid("FECHA_INGRESO" = dta.blank$FECHA_INGRESO,
 
 
 tbl.nuevosdece <- NULL
+tbl.nuevosdeceall <- NULL
 tbl.pais <- NULL
 tbl.entidades <- NULL
 tbl.resultado <- NULL
@@ -205,14 +206,14 @@ plot.poscompstatetasa <- NULL
 plot.pendcompstate <- NULL
 plot.dececompstate <- NULL
 
-#for(x in grp_names){
-#  tbl.nuevosdece[[x]] <- dta_comb %>% filter(`grp` == x & !is.na(`FECHA_DEF`) & 
-#                              `RESULTADO` == "Positivo SARS-CoV-2") %>%
-#          group_by(`FECHA_DEF`) %>%
-#          summarise("grp" = x,
-#            "Nuevos Decesos" = n()) %>% rename("FECHA_INGRESO" = `FECHA_DEF`)
-#  kk2 <- left_join(dta.blank.compstate, kk, by=c("FECHA_INGRESO", "grp"))
-#}
+for(x in grp_names){
+  tbl.nuevosdece[[x]] <- dta_comb %>% filter(`grp` == x & !is.na(`FECHA_DEF`) & 
+                              `RESULTADO` == "Positivo SARS-CoV-2") %>%
+          group_by(`FECHA_DEF`) %>%
+          summarise("grp" = x,
+            "Nuevos Decesos" = n()) %>% rename("FECHA_INGRESO" = `FECHA_DEF`)
+  tbl.nuevosdeceall <- rbind(tbl.nuevosdeceall, tbl.nuevosdece[[x]])
+}
 
 #### FOR TABLES OF CASOS EN PAIS MEXICO
 tbl.pais[["Nacional"]] <- dta_split[["Nacional"]]  %>% 
@@ -234,24 +235,19 @@ tbl.entidades[["Nacional"]] <- dta_split[["Nacional"]]  %>%
                   rename('Entidad Residencia' = ENTIDAD_RES)
 
 #### GRAPH FOR TREND BY STATE
-tblkk <- dta_comb %>% group_by(`grp`, `FECHA_DEF`) %>%
-          summarise("Decesos x dia" =  sum( `FECHA_DEF` == `FECHA_INGRESO` & 
-                                  `RESULTADO` == "Positivo SARS-CoV-2") )
-
 tbl.compstatetmp <- dta_comb %>% group_by(`grp`, `FECHA_INGRESO`) %>%
                 summarise("Nuevos Positivo" = sum(`RESULTADO` == 
                                                     "Positivo SARS-CoV-2"),
                 "Nuevos No Positivo" = sum(`RESULTADO` == 
                                              "No positivo SARS-CoV-2"),
-                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"),
-                "Nuevos Decesos" = sum( !is.na(`FECHA_DEF`) & 
-                                  `RESULTADO` == "Positivo SARS-CoV-2")) 
+                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"))
 tbl.compstatetmp <- left_join(dta.blank.compstate, tbl.compstatetmp,
+                                       by=c("grp", "FECHA_INGRESO")) %>%
+                    left_join(tbl.nuevosdeceall,
                                        by=c("grp", "FECHA_INGRESO")) %>%
                     left_join(poblstate, by = "grp")
 tbl.compstatetmp[is.na(tbl.compstatetmp)] <- 0
-#tbl.compstatetmp <- mutate()
-    
+
 tbl.compstatetmp <- tbl.compstatetmp %>% group_by(`grp`) %>%
         mutate("Total Positivo" = cumsum(`Nuevos Positivo`),
               "Total No Positivo" = cumsum(`Nuevos No Positivo`),
@@ -333,10 +329,10 @@ for(x in grp_names){
   ans.tmp <- dtagrp %>% group_by(`FECHA_INGRESO`) %>%
       summarise("Nuevos Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
                 "Nuevos No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
-                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"),
-                "Nuevos Decesos" = sum(!is.na(`FECHA_DEF`) & 
-                                  `RESULTADO` == "Positivo SARS-CoV-2"))
-  ans.tmp <- left_join(dta.blank, ans.tmp, by="FECHA_INGRESO") 
+                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"))
+  ans.tmp <- left_join(dta.blank, ans.tmp, by="FECHA_INGRESO") %>%
+                left_join(tbl.nuevosdece[[x]] %>% 
+                            dplyr::select(-c(`grp`)), by = "FECHA_INGRESO")
   ans.tmp[is.na(ans.tmp)] <- 0
   
   ans.tmp <- ans.tmp %>%  mutate("Total Positivo" = cumsum(`Nuevos Positivo`),

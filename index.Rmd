@@ -54,7 +54,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200425COVID19MEXICO.csv")
+dta <- read_csv("Data/200426COVID19MEXICO.csv")
 
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -189,7 +189,7 @@ tbl.entidades <- NULL
 tbl.resultado <- NULL
 tbl.municipios <- NULL
 tbl.tasa <- NULL
-
+tbl.percintub <- NULL
 
 plot.casesnew <- NULL
 plot.casestotal <- NULL
@@ -205,7 +205,13 @@ plot.poscompstate <- NULL
 plot.poscompstatetasa <- NULL
 plot.pendcompstate <- NULL
 plot.dececompstate <- NULL
+plot.hospitedadsex <- NULL
+plot.neumonia <- NULL
+plot.intubdeath <- NULL
+plot.comorbdeath <- NULL
 
+
+#### TO COMPUTE NUMBER OF DEATHS BASED ON FECHA_DEF
 for(x in grp_names){
   tbl.nuevosdece[[x]] <- dta_comb %>% filter(`grp` == x & !is.na(`FECHA_DEF`) & 
                               `RESULTADO` == "Positivo SARS-CoV-2") %>%
@@ -453,7 +459,7 @@ for(x in grp_names){
                           ylab("Número de Casos") 
      
      
-     #### FOR STATS ON POSITIVE CASES BY EDAD/SEXO
+    #### FOR STATS ON POSITIVE CASES BY EDAD/SEXO
     tbl.possextmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2") %>%
           group_by(`EDAD_GRUPO`, `SEXO`, .drop = FALSE) %>%
             summarise("Casos" = n()) %>% ungroup() %>%
@@ -471,6 +477,47 @@ for(x in grp_names){
                   scale_fill_brewer(palette = "Dark2") +
                   xlab("Grupo de Edad") + 
                   ylab("% de Casos Positivos") 
+    
+    #### FOR STATS ON POSITIVE HOSPITALIZED CASES BY EDAD/SEXO
+    tbl.hospitedadsextmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2" &
+                                         `TIPO_PACIENTE` == "HOSPITALIZADO") %>%
+          group_by(`EDAD_GRUPO`, `SEXO`, .drop = FALSE) %>%
+            summarise("Casos" = n()) %>% ungroup() %>%
+              mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2))
+    
+    plot.hospitedadsex[[x]] <- tbl.hospitedadsextmp %>% ggplot(aes(x = `EDAD_GRUPO`, 
+                                                 y = `Porcentaje`, 
+                                                 fill = `SEXO`)) +
+                  geom_bar(stat = "identity", 
+                                   aes(text = paste(`Casos`, 
+                                  " casos hospitalizados entre ",  `EDAD_GRUPO`, 
+                                  " años ","(", `Porcentaje`, "%)",
+                                              sep=""))) +
+                  theme_bw()  +
+                  scale_fill_brewer(palette = "Dark2") +
+                  xlab("Grupo de Edad") + 
+                  ylab("% de Casos Hospitalizados") 
+    
+    
+    #### FOR STATS ON POSITIVE CASES WITH NEUMONIA BY EDAD/SEXO
+    tbl.neumoniatmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2" &
+                                         `NEUMONIA` == "SI") %>%
+          group_by(`EDAD_GRUPO`, `SEXO`, .drop = FALSE) %>%
+            summarise("Casos" = n()) %>% ungroup() %>%
+              mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2))
+    
+    plot.neumonia[[x]] <- tbl.neumoniatmp %>% ggplot(aes(x = `EDAD_GRUPO`, 
+                                                 y = `Porcentaje`, 
+                                                 fill = `SEXO`)) +
+                  geom_bar(stat = "identity", 
+                                   aes(text = paste(`Casos`, 
+                                  " casos presentaron neumonia entre ",  `EDAD_GRUPO`, 
+                                  " años ","(", `Porcentaje`, "%)",
+                                              sep=""))) +
+                  theme_bw()  +
+                  scale_fill_brewer(palette = "Dark2") +
+                  xlab("Grupo de Edad") + 
+                  ylab("% de Casos Hospitalizados") 
     
 
     #### FOR STATS ON DECESOS BY EDAD
@@ -549,6 +596,35 @@ for(x in grp_names){
                   ylab("Número de Casos") 
     
     
+    #### TO PERCENTAGE OF HOSPITALIZED CASES THAT HAVE DIED DEPENDING 
+    #### ON WHETHER OR NOT THEY WERE INTUBATED
+    tbl.intubdeathtmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2" & 
+                                          `TIPO_PACIENTE` == "HOSPITALIZADO") %>%
+            group_by(`INTUBADO`) %>%
+            summarise(
+              "Porcentaje" = round(100*mean(!is.na(`FECHA_DEF`)), 2))
+    
+    plot.intubdeath[[x]] <- tbl.intubdeathtmp %>% ggplot(aes(x = `INTUBADO`, 
+                                                 y = `Porcentaje`)) +
+                  geom_bar(stat = "identity", fill = "darkblue",
+                                   aes(text = paste(`Porcentaje`, 
+                                  "% de casos hospitalizados ",  `INTUBADO`, " intubados han fallecido",
+                                              sep=""))) +
+                  theme_bw() +
+                  theme(legend.text = element_text(size = rel(0.7)),
+                        axis.text.x = element_text(
+                                        size = rel(0.8), angle = 45)) +
+                  scale_fill_brewer(palette = "Dark2") +
+                  xlab("¿INTUBADO?") + 
+                  ylab("% de Decesos") 
+    
+    #### COMPUTE PERCENTAGE OF INTUBATED
+    tbl.percintub[[x]] <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2" & 
+                                          `TIPO_PACIENTE` == "HOSPITALIZADO") %>%
+                        summarise("Total.Hospi" = n(),
+                                  "Total.Intub" = sum(`INTUBADO` == "SI"),
+                                  "Perc.Intub" = round(100*`Total.Intub`/`Total.Hospi`, 2))
+        
     #### TO EVALUATE TIME FROM FIRST SYMPTOMS TO DEATH
     tbl.time2deathtmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2" & 
                                             !is.na(`FECHA_DEF`)) %>%
@@ -556,7 +632,6 @@ for(x in grp_names){
                           group_by(`Diasparadeceso`) %>%
                           summarise("Casos" = n()) %>%  ungroup() %>%
                     mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2))
-    
     
     plot.time2death[[x]] <- tbl.time2deathtmp %>% ggplot(aes(x = `Diasparadeceso`,
                                                              y = `Casos`)) +
@@ -567,7 +642,34 @@ for(x in grp_names){
                   xlab("Días entre inicio de síntomas y deceso") + 
                   ylab("Número de Casos")
      
-
+    
+    #### TO EVALUATE NUMBER OF COMORBILITIES AND DEATH RISK
+    tbl.comorbdeath <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2") %>%
+       mutate("FALLECIO" = ifelse(!is.na(`FECHA_DEF`), "Si", "No" ),
+                             "TIEMPO_ATENCION" = `FECHA_INGRESO` - `FECHA_SINTOMAS`,
+              "COMORB" =  paste(`DIABETES`, `EPOC`, `ASMA`, `INMUSUPR`, `HIPERTENSION`,
+                                `OTRA_COM`, `CARDIOVASCULAR`, `OBESIDAD`, `RENAL_CRONICA`,
+                                `TABAQUISMO`, sep="."),
+              "COMORB2" = grepl("SI", `COMORB`),
+              "COMORB3" = str_count(`COMORB`, "SI"))
+        
+    tbl.comorbdeath2 <- tbl.comorbdeath %>% filter(`TIPO_PACIENTE` == "HOSPITALIZADO") %>%
+      mutate("COMORB_NUMB" = ifelse(`COMORB3`>=3, ">=3", `COMORB3`),
+             "COMORB_NUMB" = factor(`COMORB_NUMB`, levels=c("0","1", "2",">=3"))) %>%
+          group_by(`COMORB_NUMB`) %>%
+          summarise("Porcentaje" =  round( 100*sum(!is.na(`FECHA_DEF`))/n(), 2))
+    
+    plot.comorbdeath[[x]] <- tbl.comorbdeath2 %>% ggplot(aes(x = `COMORB_NUMB`, 
+                                                             y=`Porcentaje`)) + 
+                geom_bar(stat = "identity", fill = "darkblue", 
+                                   aes(text = paste(`Porcentaje`, 
+                                  "% de los casos hospitalizados con ",  `COMORB_NUMB`, 
+                                  " comorbilidades han fallecido",
+                                              sep=""))) +
+                  theme_bw() +
+                  xlab("# de comorbilidades por paciente") + 
+                  ylab("% de decesos que son \n COVID-19 positivos y hospitalizados") 
+    
   } ## end big loop
 ```
 
@@ -581,6 +683,8 @@ for(x in grp_names){
                                 `TABAQUISMO`, sep="."),
               "COMORB2" = grepl("SI", `COMORB`),
               "COMORB3" = str_count(`COMORB`, "SI"))
+
+
                 
 
     ## PROBABILIDAD DE FALLECER DADO QUE ERES COVID POSITIVO Y TIENES 

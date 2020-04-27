@@ -110,6 +110,27 @@ htmltools::tagList( ggplotly(plot.decesex[[x]], tooltip = "text",
 
 cat("\n\n")
 
+
+cat(paste("## Gráfica de Hospitalizados por Edad/Sexo \n\n"))
+cat("\n\n")
+htmltools::tagList( ggplotly(plot.hospitedadsex[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "v", x = 0)) )
+
+cat("\n\n")
+
+
+cat(paste("## Gráfica de Porcentaje Decesos Según Intubación \n\n"))
+cat(paste("De ", tbl.percintub[[x]][[1]], " casos positivos hospitalizados, ",
+        tbl.percintub[[x]][[2]], " han sido entubados (", tbl.percintub[[x]][[3]], "%). \n\n",
+        sep=""))
+htmltools::tagList( ggplotly(plot.intubdeath[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "v")) )
+
+cat("\n\n")
+
+
 cat(paste("## Gráfica de Casos Positivos Intubados y en UCI \n\n"))
 cat("\n\n")
 htmltools::tagList( ggplotly(plot.intub[[x]], tooltip = "text",
@@ -132,6 +153,14 @@ cat("&nbsp; \n\n
     &nbsp; \n\n
     &nbsp; \n\n
     &nbsp; \n\n")
+
+cat(paste("## Gráfica de Número de Comorbilidades por Casos Hospitalizados \n\n"))
+cat("Esta gráfica considera el porcentaje de decesos que han occurido respecto al número de comorbilidades en cada paciente. Sólo se consideran casos positivos que han sido hospitalizados. \n\n")
+htmltools::tagList( ggplotly(plot.comorbdeath[[x]], tooltip = "text",
+                             dynamicTicks = TRUE))
+
+cat("\n\n")
+
 
 cat(paste("## Gráfica de Inicio de Sintomas y Deceso \n\n"))
 cat("\n\n")
@@ -229,6 +258,22 @@ for(x in grp_names_state){
                              dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v", x = 0)) ))
   
+  cat(paste("## Gráfica de Hospitalizados por Edad/Sexo \n\n"))
+  cat("\n\n")
+  print(htmltools::tagList( ggplotly(plot.hospitedadsex[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "v", x = 0)) ) )
+
+  cat("\n\n")
+
+  cat(paste("## Gráfica de Porcentaje Decesos Según Intubación \n\n"))
+  cat(paste("De ", tbl.percintub[[x]][[1]], " casos positivos hospitalizados, ",
+        tbl.percintub[[x]][[2]], " han sido entubados (", tbl.percintub[[x]][[3]], "%). \n\n",
+        sep=""))
+  print(htmltools::tagList( ggplotly(plot.intubdeath[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "v")) ))
+  
   cat(paste("## Gráfica de Casos Positivos Intubados y en UCI \n\n"))
   cat("\n\n")
   print(htmltools::tagList( ggplotly(plot.intub[[x]], tooltip = "text",
@@ -249,6 +294,11 @@ cat("&nbsp; \n\n
     &nbsp; \n\n
     &nbsp; \n\n
     &nbsp; \n\n")
+
+  cat(paste("## Gráfica de Número de Comorbilidades por Casos Hospitalizados \n\n"))
+  cat("Esta gráfica considera el porcentaje de decesos que han occurido respecto al número de comorbilidades en cada paciente. Sólo se consideran casos positivos que han sido hospitalizados. \n\n")
+  print(htmltools::tagList( ggplotly(plot.comorbdeath[[x]], tooltip = "text",
+                             dynamicTicks = TRUE)))
 
   cat(paste("## Gráfica de Inicio de Sintomas y Deceso \n\n"))
   cat("\n\n")

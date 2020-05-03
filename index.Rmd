@@ -618,7 +618,7 @@ for(x in grp_names){
                   xlab("¿INTUBADO?") + 
                   ylab("% de Decesos") 
     
-    #### COMPUTE PERCENTAGE OF INTUBATED
+    #### COMPUTE PERCENTAGE OF INTUBATED THAT HAVE BEEN HOSPITALIZED
     tbl.percintub[[x]] <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2" & 
                                           `TIPO_PACIENTE` == "HOSPITALIZADO") %>%
                         summarise("Total.Hospi" = n(),

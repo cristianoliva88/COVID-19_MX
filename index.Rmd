@@ -14,7 +14,7 @@ fontsize: 11pt
 #github-repo: rstudio/bookdown-demo
 description: "Análisis de Casos de COVID-19 en México basado en los Datos Abiertos de la Secretaría de Salud, El COVID-19 es la enfermedad causada por el nuevo coronavirus SARS-CoV-2, Autor: Cristian Oliva Avilés"
 url: "http://casoscovidmx.com/"
-favicon: "coronaviruspic.png"
+favicon: "coronapic.png"
 ---
 
 ```{r loadlibraries, include = FALSE}
@@ -698,6 +698,10 @@ for(x in grp_names){
               "COMORB3" = str_count(`COMORB`, "SI"))
     vec <- table(kk2$COMORB3)
     sum(vec[2:8])/sum(vec)
+    
+    ## No USMER y TIPO_PACIENTE
+    kk2 <- dta_split$Nacional 
+    table(kk2$ORIGEN, kk2$TIPO_PACIENTE, kk2$RESULTADO)
 
     ## PROBABILIDAD DE FALLECER DADO QUE ERES COVID POSITIVO Y TIENES 
     ## X NUMERO DE COMORBILIDADES

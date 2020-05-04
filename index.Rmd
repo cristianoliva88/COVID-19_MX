@@ -13,9 +13,9 @@ fontsize: 11pt
 #graphics: yes
 #github-repo: rstudio/bookdown-demo
 description: "Análisis en Tiempo Real de Casos de COVID-19 en México con base en los Datos Abiertos de la Secretaría de Salud. El COVID-19 es la enfermedad causada por el nuevo coronavirus SARS-CoV-2. Autor: Cristian Oliva Avilés"
-url: "http://casoscovidmx.com/"
+url: 'http://casoscovidmx.com/'
 favicon: "coronapic.png"
-cover-image: "tasaincidencia.png"
+cover-image: "comparación-de-entidades.html#gráfica-comparativa-de-tasa-de-incidencia-por-cada-100mil-hab"
 ---
 
 ```{r loadlibraries, include = FALSE}

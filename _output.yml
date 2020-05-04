@@ -12,4 +12,9 @@ bookdown::gitbook:
         <li><a href=http://cristianoliva88.github.io/website> Cristian Oliva Avilés </a></li>
         <li><a href="https://www.hitwebcounter.com" target="_blank">
         <img src="https://hitwebcounter.com/counter/counter.php?page=7278252&style=0007&nbdigits=5&type=page&initCount=0" title="User Stats" Alt="PHP Hits Count"   border="0" >
-        </a></li>     
+        </a></li>   
+    sharing:
+      facebook: yes
+      twitter: yes
+      linkedin: yes
+      all: no

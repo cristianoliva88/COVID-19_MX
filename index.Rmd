@@ -192,6 +192,8 @@ tbl.resultado <- NULL
 tbl.municipios <- NULL
 tbl.tasa <- NULL
 tbl.percintub <- NULL
+tbl.perchospcomorb <- NULL
+tbl.percintubcomorb <- NULL
 
 plot.casesnew <- NULL
 plot.casestotal <- NULL
@@ -211,6 +213,8 @@ plot.hospitedadsex <- NULL
 plot.neumonia <- NULL
 plot.intubdeath <- NULL
 plot.comorbdeath <- NULL
+plot.hospcomorb <- NULL
+plot.intubcomorb <- NULL
 
 
 #### TO COMPUTE NUMBER OF DEATHS BASED ON FECHA_DEF
@@ -672,6 +676,83 @@ for(x in grp_names){
                   xlab("# de comorbilidades por paciente") + 
                   ylab("% de decesos que son \n COVID-19 positivos y hospitalizados") 
     
+    
+    #### TO BUILD GRAPHS OF HOSPITALIZED BY COMORBIDITIES
+    tbl.hospcomorb <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2" & 
+                                          `TIPO_PACIENTE` == "HOSPITALIZADO") %>%
+              gather("COMORB", "RESPUESTA", DIABETES:TABAQUISMO, factor_key = TRUE ) %>%
+              group_by(`COMORB`) %>%
+              summarise("Porcentaje" = round(100*mean(`RESPUESTA` == "SI"), 2),
+                        "Casos" = sum(`RESPUESTA` == "SI")) %>%
+              arrange(desc(`Porcentaje`))
+    
+    plot.hospcomorb[[x]] <- tbl.hospcomorb %>% ggplot(aes(x = reorder(`COMORB`, -`Porcentaje`), 
+                                                             y=`Porcentaje`)) + 
+                geom_bar(stat = "identity", fill = "darkblue", 
+                                   aes(text = paste(`Porcentaje`, 
+                                  "% de los casos hospitalizados tienen ",  `COMORB`, 
+                                  "",
+                                              sep=""))) + 
+                  theme_bw() +
+                  theme(legend.text = element_text(size = rel(0.7)),
+                        axis.text.x = element_text(
+                                        size = rel(0.7), angle = 0)) +
+                  xlab("Comorbilidad") + 
+                  ylab("% de hospitalizados con cierta comorbilidad") 
+    
+    ## COMPUTE PERCENTAGE OF HOSPITALIZED WITH AT LEAST ONE COMORBILITY
+    tbl.perchospcomorb[[x]] <- dtagrp %>% filter(`RESULTADO` == 
+                                                               "Positivo SARS-CoV-2" & 
+                                          `TIPO_PACIENTE` == "HOSPITALIZADO") %>%
+            mutate("COMORB" =  paste(`DIABETES`, `EPOC`, `ASMA`, `INMUSUPR`, `HIPERTENSION`,
+                                `OTRA_COM`, `CARDIOVASCULAR`, `OBESIDAD`, `RENAL_CRONICA`,
+                                `TABAQUISMO`, sep="."),
+              "COMORB2" = grepl("SI", `COMORB`),
+              "COMORB3" = str_count(`COMORB`, "SI")) %>%
+            summarise("Total" = n(),
+                      "Casos" = sum(`COMORB3` >= 1),
+                      "Porcentaje" = round(100*mean(`COMORB3` >= 1), 2))
+    
+    
+    #### TO BUILD GRAPHS OF INTUBATED BY COMORBIDITIES
+    tbl.intubcomorb <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2" & 
+                                          `TIPO_PACIENTE` == "HOSPITALIZADO" &
+                                          `INTUBADO` == "SI") %>%
+              gather("COMORB", "RESPUESTA", DIABETES:TABAQUISMO, factor_key = TRUE ) %>%
+              group_by(`COMORB`) %>%
+              summarise("Porcentaje" = round(100*mean(`RESPUESTA` == "SI"), 2),
+                        "Casos" = sum(`RESPUESTA` == "SI")) %>%
+              arrange(desc(`Porcentaje`))
+    
+    plot.intubcomorb[[x]] <- tbl.intubcomorb %>% ggplot(aes(x = reorder(`COMORB`, -`Porcentaje`), 
+                                                             y=`Porcentaje`)) + 
+                geom_bar(stat = "identity", fill = "darkblue", 
+                                   aes(text = paste(`Porcentaje`, 
+                                  "% de los casos intubados tienen ",  `COMORB`, 
+                                  "",
+                                              sep=""))) + 
+                  theme_bw() +
+                  theme(legend.text = element_text(size = rel(0.7)),
+                        axis.text.x = element_text(
+                                        size = rel(0.7), angle = 0)) +
+                  xlab("Comorbilidad") + 
+                  ylab("% de casos intubados con cierta comorbilidad") 
+    
+    ## COMPUTE PERCENTAGE OF HOSPITALIZED WITH AT LEAST ONE COMORBILITY
+    tbl.percintubcomorb[[x]] <- dtagrp %>% filter(`RESULTADO` == 
+                                                               "Positivo SARS-CoV-2" & 
+                                          `TIPO_PACIENTE` == "HOSPITALIZADO" &
+                                            `INTUBADO` == "SI") %>%
+            mutate("COMORB" =  paste(`DIABETES`, `EPOC`, `ASMA`, `INMUSUPR`, `HIPERTENSION`,
+                                `OTRA_COM`, `CARDIOVASCULAR`, `OBESIDAD`, `RENAL_CRONICA`,
+                                `TABAQUISMO`, sep="."),
+              "COMORB2" = grepl("SI", `COMORB`),
+              "COMORB3" = str_count(`COMORB`, "SI")) %>%
+            summarise("Total" = n(),
+                      "Casos" = sum(`COMORB3` >= 1),
+                      "Porcentaje" = round(100*mean(`COMORB3` >= 1), 2))
+    
+    
   } ## end big loop
 ```
 
@@ -700,9 +781,24 @@ for(x in grp_names){
     sum(vec[2:8])/sum(vec)
     
     ## No USMER y TIPO_PACIENTE
-    kk2 <- dta_split$Nacional 
-    table(kk2$ORIGEN, kk2$TIPO_PACIENTE, kk2$RESULTADO)
-
+    kk2 <- dta_split$Nacional %>% filter(`RESULTADO` == "Positivo SARS-CoV-2" & 
+                                          `TIPO_PACIENTE` == "HOSPITALIZADO") %>%
+              summarise("DIABETES" = mean(`DIABETES` == "SI"),
+                        "EPOC" = mean(`EPOC` == "SI"),
+                        "ASMA" = mean(`ASMA` == "SI"),
+                        "INMUSUPR" = mean(`INMUSUPR` == "SI"),
+                        "HIPERTENSION" = mean(`HIPERTENSION` == "SI"),
+                        "OTRA_COM" = mean(`OTRA_COM` == "SI"),
+                        "CARDIOVASCULAR" = mean(`CARDIOVASCULAR` == "SI"),
+                        "OBESIDAD" = mean(`OBESIDAD` == "SI"),
+                        "RENAL_CRONICA" = mean(`RENAL_CRONICA` == "SI"),
+                        "TABAQUISMO" = mean(`TABAQUISMO` == "SI"))
+      
+  
+              
+       
+       
+    
     ## PROBABILIDAD DE FALLECER DADO QUE ERES COVID POSITIVO Y TIENES 
     ## X NUMERO DE COMORBILIDADES
     table(kk$COMORB3, is.na(kk$FECHA_DEF))

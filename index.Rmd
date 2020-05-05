@@ -473,7 +473,7 @@ for(x in grp_names){
               mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2))
     
     plot.possex[[x]] <- tbl.possextmp %>% ggplot(aes(x = `EDAD_GRUPO`, 
-                                                 y = `Porcentaje`, 
+                                                 y = `Casos`, 
                                                  fill = `SEXO`)) +
                   geom_bar(stat = "identity", 
                                    aes(text = paste(`Casos`, 
@@ -483,7 +483,7 @@ for(x in grp_names){
                   theme_bw()  +
                   scale_fill_brewer(palette = "Dark2") +
                   xlab("Grupo de Edad") + 
-                  ylab("% de Casos Positivos") 
+                  ylab("Número de Casos Positivos") 
     
     #### FOR STATS ON POSITIVE HOSPITALIZED CASES BY EDAD/SEXO
     tbl.hospitedadsextmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2" &
@@ -493,7 +493,7 @@ for(x in grp_names){
               mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2))
     
     plot.hospitedadsex[[x]] <- tbl.hospitedadsextmp %>% ggplot(aes(x = `EDAD_GRUPO`, 
-                                                 y = `Porcentaje`, 
+                                                 y = `Casos`, 
                                                  fill = `SEXO`)) +
                   geom_bar(stat = "identity", 
                                    aes(text = paste(`Casos`, 
@@ -503,7 +503,7 @@ for(x in grp_names){
                   theme_bw()  +
                   scale_fill_brewer(palette = "Dark2") +
                   xlab("Grupo de Edad") + 
-                  ylab("% de Casos Hospitalizados") 
+                  ylab("Número de Casos Hospitalizados") 
     
     
     #### FOR STATS ON POSITIVE CASES WITH NEUMONIA BY EDAD/SEXO
@@ -514,7 +514,7 @@ for(x in grp_names){
               mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2))
     
     plot.neumonia[[x]] <- tbl.neumoniatmp %>% ggplot(aes(x = `EDAD_GRUPO`, 
-                                                 y = `Porcentaje`, 
+                                                 y = `Casos`, 
                                                  fill = `SEXO`)) +
                   geom_bar(stat = "identity", 
                                    aes(text = paste(`Casos`, 
@@ -524,7 +524,7 @@ for(x in grp_names){
                   theme_bw()  +
                   scale_fill_brewer(palette = "Dark2") +
                   xlab("Grupo de Edad") + 
-                  ylab("% de Casos Hospitalizados") 
+                  ylab("Número de Casos Hospitalizados") 
     
 
     #### FOR STATS ON DECESOS BY EDAD
@@ -535,7 +535,7 @@ for(x in grp_names){
               mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2))
     
     plot.decesex[[x]] <- tbl.decesextmp %>% ggplot(aes(x = `EDAD_GRUPO`, 
-                                                 y = `Porcentaje`, 
+                                                 y = `Casos`, 
                                                  fill = `SEXO`)) +
                   geom_bar(stat = "identity", 
                                    aes(text = paste(`Casos`, 
@@ -545,7 +545,7 @@ for(x in grp_names){
                   theme_bw()  +
                   scale_fill_brewer(palette = "Dark2") +
                   xlab("Grupo de Edad") + 
-                  ylab("% de Decesos") 
+                  ylab("Número de Decesos") 
     
     
      #### MORTALITY BY MEDICAL CONDITION AND AGE GROUP
@@ -581,8 +581,10 @@ for(x in grp_names){
       
      
     #### INTUBADOS AND UCI
-    tbl.intubtmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2") %>%
-                      group_by(`INTUBADO`, `UCI`, .drop = FALSE) %>%
+    tbl.intubtmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2" &
+                                        `TIPO_PACIENTE` == "HOSPITALIZADO" &
+                                        `INTUBADO` %in% c("SI", "NO")) %>%
+                      group_by(`INTUBADO`, `UCI`, .drop = TRUE) %>%
             summarise("Casos" = n()) %>% ungroup() %>%
               mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2))
     
@@ -623,7 +625,7 @@ for(x in grp_names){
                                         size = rel(0.8), angle = 45)) +
                   scale_fill_brewer(palette = "Dark2") +
                   xlab("¿INTUBADO?") + 
-                  ylab("% de Decesos") 
+                  ylab("% de Decesos según Intubación") 
     
     #### COMPUTE PERCENTAGE OF INTUBATED THAT HAVE BEEN HOSPITALIZED
     tbl.percintub[[x]] <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2" & 
@@ -697,9 +699,9 @@ for(x in grp_names){
                   theme_bw() +
                   theme(legend.text = element_text(size = rel(0.7)),
                         axis.text.x = element_text(
-                                        size = rel(0.7), angle = 0)) +
+                                        size = rel(0.7), angle = 45)) +
                   xlab("Comorbilidad") + 
-                  ylab("% de hospitalizados con cierta comorbilidad") 
+                  ylab("% de hospitalizados por comorbilidad") 
     
     ## COMPUTE PERCENTAGE OF HOSPITALIZED WITH AT LEAST ONE COMORBILITY
     tbl.perchospcomorb[[x]] <- dtagrp %>% filter(`RESULTADO` == 
@@ -735,9 +737,9 @@ for(x in grp_names){
                   theme_bw() +
                   theme(legend.text = element_text(size = rel(0.7)),
                         axis.text.x = element_text(
-                                        size = rel(0.7), angle = 0)) +
+                                        size = rel(0.7), angle = 45)) +
                   xlab("Comorbilidad") + 
-                  ylab("% de casos intubados con cierta comorbilidad") 
+                  ylab("% de casos intubados por comorbilidad") 
     
     ## COMPUTE PERCENTAGE OF HOSPITALIZED WITH AT LEAST ONE COMORBILITY
     tbl.percintubcomorb[[x]] <- dtagrp %>% filter(`RESULTADO` == 

@@ -16,6 +16,8 @@ description: "Análisis en Tiempo Real de Casos de COVID-19 en México con base 
 url: 'https\://casoscovidmx.com/'
 favicon: "coronapic.png"
 cover-image: images/tasaincidencia2.png
+apple-touch-icon: "coronapic.png"
+apple-touch-icon-size: 120
 ---
 
 ```{r loadlibraries, include = FALSE}

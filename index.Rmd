@@ -59,7 +59,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200506COVID19MEXICO.csv")
+dta <- read_csv("Data/200507COVID19MEXICO.csv") %>% filter(`FECHA_INGRESO` != "1969-12-31")
 
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,

@@ -59,7 +59,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200507COVID19MEXICO.csv") %>% filter(`FECHA_INGRESO` != "1969-12-31")
+dta <- read_csv("Data/200508COVID19MEXICO.csv") %>% filter(`FECHA_INGRESO` != "1969-12-31")
 
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -185,7 +185,6 @@ date.last <- tail(sort(unique(dta$FECHA_INGRESO)),1)
 dta.blank <- data.frame("FECHA_INGRESO" = seq(date.first, date.last, 1))
 dta.blank.compstate <- expand.grid("FECHA_INGRESO" = dta.blank$FECHA_INGRESO,
                                    "grp" = sort(unique(dta_comb$grp)))
-
 
 tbl.nuevosdece <- NULL
 tbl.nuevosdeceall <- NULL

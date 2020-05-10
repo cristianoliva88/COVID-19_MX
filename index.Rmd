@@ -59,7 +59,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200508COVID19MEXICO.csv")
+dta <- read_csv("Data/200509COVID19MEXICO.csv")
 
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -758,6 +758,70 @@ for(x in grp_names){
     
     
   } ## end big loop
+```
+
+```{r eval=FALSE}
+  date.first <- as.Date("2020-04-14")
+  date.last <- as.Date("2020-04-28")
+  dta.blank <- data.frame("FECHA_SINTOMAS" = seq(date.first, date.last, 1))
+  
+  dtagrp <- dta_split$Yucatán %>% filter(`FECHA_SINTOMAS` <= date.last &
+                                         `FECHA_SINTOMAS` > date.first)
+              
+
+   ans.tmp <- dtagrp %>% group_by(`FECHA_SINTOMAS`) %>%
+      summarise("Nuevos Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
+                "Nuevos No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
+                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"))
+  ans.tmp <- left_join(dta.blank, ans.tmp, by="FECHA_SINTOMAS") #%>%
+                #left_join(tbl.nuevosdece[[x]] %>% 
+                 #           dplyr::select(-c(`grp`)), by = "FECHA_SINTOMAS")
+  ans.tmp[is.na(ans.tmp)] <- 0
+  
+  ans.tmp <- ans.tmp %>%  mutate("Total Positivo" = cumsum(`Nuevos Positivo`),
+              "Total No Positivo" = cumsum(`Nuevos No Positivo`),
+              "Total Pendientes" = cumsum(`Pendientes`),
+              #"Total Decesos" = cumsum(`Nuevos Decesos`),
+              "Nuevas Pruebas" = `Nuevos Positivo` + `Nuevos No Positivo` +
+                                       `Pendientes`)
+  
+  tbl.restmp <- ans.tmp %>% gather(Tipo, Cantidad, 
+                                        "Nuevos Positivo":"Nuevas Pruebas",
+                                        factor_key = T)
+  
+  p <- tbl.restmp %>% filter(`Tipo` %in% 
+                               c("Nuevos Positivo", "Nuevos Decesos",
+                                 "Pendientes")) %>%
+                      ggplot(aes(x = `FECHA_SINTOMAS`, y = `Cantidad`,
+                                 grp = `Tipo`, color = `Tipo`)) +
+                        geom_line() + 
+                        geom_point(aes(text = paste(`Cantidad`, 
+                               `Tipo`, 'en',
+                              format(`FECHA_SINTOMAS`, "%d/%m")))) + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        scale_color_manual(values = c("darkblue","yellow4",
+                                                      "red")) + 
+                        xlab("Fecha de Inicio Sintomas") + 
+                        ylab("Nuevos Casos") 
+
+  p2 <- tbl.restmp %>% filter(`Tipo` %in% 
+                               c("Total Positivo", "Nuevos Decesos",
+                                 "Total Pendientes")) %>%
+                      ggplot(aes(x = `FECHA_SINTOMAS`, y = `Cantidad`,
+                                 grp = `Tipo`, color = `Tipo`)) +
+                        geom_line() + 
+                        geom_point(aes(text = paste(`Cantidad`, 
+                               `Tipo`, 'en',
+                              format(`FECHA_SINTOMAS`, "%d/%m")))) + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        scale_color_manual(values = c("darkblue","yellow4",
+                                                      "red")) + 
+                        xlab("Fecha de Inicio Sintomas") + 
+                        ylab("Nuevos Casos") +
+                        geom_smooth(formula = y~x, se=FALSE, method = "lm")
+  
 ```
 
 

@@ -59,7 +59,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200509COVID19MEXICO.csv")
+dta <- read_csv("Data/200510COVID19MEXICO.csv")
 
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -180,10 +180,10 @@ grp_names <- names(dta_split)
 
 ```{r analysisbygrp}
 #### ANALYSIS BY GRP
-date.first <- head(sort(unique(dta$FECHA_INGRESO)),1)
-date.last <- tail(sort(unique(dta$FECHA_INGRESO)),1)
-dta.blank <- data.frame("FECHA_INGRESO" = seq(date.first, date.last, 1))
-dta.blank.compstate <- expand.grid("FECHA_INGRESO" = dta.blank$FECHA_INGRESO,
+date.first <- head(sort(unique(dta$FECHA_SINTOMAS)),1)
+date.last <- tail(sort(unique(dta$FECHA_SINTOMAS)),1)
+dta.blank <- data.frame("FECHA_SINTOMAS" = seq(date.first, date.last, 1))
+dta.blank.compstate <- expand.grid("FECHA_SINTOMAS" = dta.blank$FECHA_SINTOMAS,
                                    "grp" = sort(unique(dta_comb$grp)))
 
 tbl.nuevosdece <- NULL
@@ -211,6 +211,8 @@ plot.poscompstate <- NULL
 plot.poscompstatetasa <- NULL
 plot.pendcompstate <- NULL
 plot.dececompstate <- NULL
+plot.actcompstate <- NULL
+plot.actcompstatetasa <- NULL
 plot.hospitedadsex <- NULL
 plot.neumonia <- NULL
 plot.intubdeath <- NULL
@@ -225,8 +227,19 @@ for(x in grp_names){
                               `RESULTADO` == "Positivo SARS-CoV-2") %>%
           group_by(`FECHA_DEF`) %>%
           summarise("grp" = x,
-            "Nuevos Decesos" = n()) %>% rename("FECHA_INGRESO" = `FECHA_DEF`)
+            "Nuevos Decesos" = n()) %>% rename("FECHA_SINTOMAS" = `FECHA_DEF`)
   tbl.nuevosdeceall <- rbind(tbl.nuevosdeceall, tbl.nuevosdece[[x]])
+}
+
+#### FUNCTION TO COMPUTE ACTIVE CASES
+active.f <- function(x){
+    n <- length(x)
+    out <- NULL
+    for(i in 1:n){
+    k<- min(i,14) 
+    out <- c(out, sum(x[(i-k+1):i]))
+    }
+    out
 }
 
 #### FOR TABLES OF CASOS EN PAIS MEXICO
@@ -249,16 +262,20 @@ tbl.entidades[["Nacional"]] <- dta_split[["Nacional"]]  %>%
                   rename('Entidad Residencia' = ENTIDAD_RES)
 
 #### GRAPH FOR TREND BY STATE
-tbl.compstatetmp <- dta_comb %>% group_by(`grp`, `FECHA_INGRESO`) %>%
+tbl.compstatetmp <- dta_comb %>% 
+                group_by(`grp`, `FECHA_SINTOMAS`) %>%
                 summarise("Nuevos Positivo" = sum(`RESULTADO` == 
                                                     "Positivo SARS-CoV-2"),
                 "Nuevos No Positivo" = sum(`RESULTADO` == 
                                              "No positivo SARS-CoV-2"),
-                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"))
+                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"),
+                "Nuevos Activos" = sum(`RESULTADO` ==  "Positivo SARS-CoV-2" #&
+                                         #is.na(`FECHA_DEF`) ))
+                ))
 tbl.compstatetmp <- left_join(dta.blank.compstate, tbl.compstatetmp,
-                                       by=c("grp", "FECHA_INGRESO")) %>%
+                                       by=c("grp", "FECHA_SINTOMAS")) %>%
                     left_join(tbl.nuevosdeceall,
-                                       by=c("grp", "FECHA_INGRESO")) %>%
+                                       by=c("grp", "FECHA_SINTOMAS")) %>%
                     left_join(poblstate, by = "grp")
 tbl.compstatetmp[is.na(tbl.compstatetmp)] <- 0
 
@@ -267,44 +284,74 @@ tbl.compstatetmp <- tbl.compstatetmp %>% group_by(`grp`) %>%
               "Total No Positivo" = cumsum(`Nuevos No Positivo`),
               "Total Pendientes" = cumsum(`Pendientes`),
               "Total Decesos" = cumsum(`Nuevos Decesos`),
-              "Tasa Positivo" = round(`Total Positivo`/`POBLACION_ENT`, 2))
+              "Tasa Positivo" = round(`Total Positivo`/`POBLACION_ENT`, 2),
+              "Total Activos" = active.f(`Nuevos Activos`), 
+              "Tasa Activos" = round(`Total Activos`/`POBLACION_ENT`,2))
+        
+tbl.compstatetmp <- tbl.compstatetmp %>% filter(`FECHA_SINTOMAS` >= "2020-03-01")
 
 numcolors <- 33
 mycolors <- colorRampPalette(brewer.pal(8, "Set1"))(numcolors)
 
 plot.poscompstate[["Nacional"]] <- tbl.compstatetmp %>%
-                      ggplot(aes(x = `FECHA_INGRESO`, y = `Total Positivo`,
+                      ggplot(aes(x = `FECHA_SINTOMAS`, y = `Total Positivo`,
                                  grp = `grp`, color = `grp`)) +
                         geom_line() +
                         geom_point(aes(text = paste(`Total Positivo`, 
                                'casos positivos en', `grp`, 'hasta',
-                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                              format(`FECHA_SINTOMAS`, "%d/%m")))) + 
                         theme_bw() + 
                         theme(legend.title = element_blank()) +
                         scale_color_manual(values = mycolors) + 
-                        xlab("Fecha de Ingreso") + 
+                        xlab("Fecha de Inicio Síntomas") + 
                         ylab("Total Casos Positivos") 
 
+plot.actcompstate[["Nacional"]] <- tbl.compstatetmp %>%
+                      ggplot(aes(x = `FECHA_SINTOMAS`, y = `Total Activos`,
+                                 grp = `grp`, color = `grp`)) +
+                        geom_line() +
+                        geom_point(aes(text = paste(`Total Activos`, 
+                               'casos activos en', `grp`, 'hasta',
+                              format(`FECHA_SINTOMAS`, "%d/%m")))) + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        scale_color_manual(values = mycolors) + 
+                        xlab("Fecha") + 
+                        ylab("Total Casos Activos")
+
+plot.actcompstatetasa[["Nacional"]] <- tbl.compstatetmp %>%
+                      ggplot(aes(x = `FECHA_SINTOMAS`, y = `Tasa Activos`,
+                                 grp = `grp`, color = `grp`)) +
+                        geom_line() +
+                        geom_point(aes(text = paste(`Total Activos`, 
+                               'casos activos en', `grp`, 'hasta',
+                              format(`FECHA_SINTOMAS`, "%d/%m")))) + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        scale_color_manual(values = mycolors) + 
+                        xlab("Fecha") + 
+                        ylab("Tasa Casos Activos")
+
 plot.pendcompstate[["Nacional"]] <- tbl.compstatetmp %>%
-                      ggplot(aes(x = `FECHA_INGRESO`, y = `Total Pendientes`,
+                      ggplot(aes(x = `FECHA_SINTOMAS`, y = `Total Pendientes`,
                                  grp = `grp`, color = `grp`)) +
                         geom_line() +
                         geom_point(aes(text = paste(`Total Pendientes`, 
-                               'casos pendientes en', `grp`, 'hasta',
-                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                               'tasa de incidencia en', `grp`, 'hasta',
+                              format(`FECHA_SINTOMAS`, "%d/%m")))) + 
                         theme_bw() + 
                         theme(legend.title = element_blank()) +
                         scale_color_manual(values = mycolors) + 
-                        xlab("Fecha de Ingreso") + 
+                        xlab("Fecha de Inicio Síntomas") + 
                         ylab("Total Casos Pendientes") 
 
 plot.dececompstate[["Nacional"]] <- tbl.compstatetmp %>%
-                      ggplot(aes(x = `FECHA_INGRESO`, y = `Total Decesos`,
+                      ggplot(aes(x = `FECHA_SINTOMAS`, y = `Total Decesos`,
                                  grp = `grp`, color = `grp`)) +
                         geom_line() +
                         geom_point(aes(text = paste(`Total Decesos`, 
                                'decesos en', `grp`, 'hasta',
-                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                              format(`FECHA_SINTOMAS`, "%d/%m")))) + 
                         theme_bw() + 
                         theme(legend.title = element_blank()) +
                         scale_color_manual(values = mycolors) + 
@@ -312,16 +359,16 @@ plot.dececompstate[["Nacional"]] <- tbl.compstatetmp %>%
                         ylab("Total Decesos") 
 
 plot.poscompstatetasa[["Nacional"]] <- tbl.compstatetmp %>%
-                      ggplot(aes(x = `FECHA_INGRESO`, y = `Tasa Positivo`,
+                      ggplot(aes(x = `FECHA_SINTOMAS`, y = `Tasa Positivo`,
                                  grp = `grp`, color = `grp`)) +
                         geom_line() +
                         geom_point(aes(text = paste(`Tasa Positivo`, 
                                ' tasa de incidencia en', `grp`, 'hasta',
-                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                              format(`FECHA_SINTOMAS`, "%d/%m")))) + 
                         theme_bw() + 
                         theme(legend.title = element_blank()) +
                         scale_color_manual(values = mycolors) + 
-                        xlab("Fecha de Ingreso") + 
+                        xlab("Fecha de Inicio Síntomas") + 
                         ylab("Tasa de Incidencia por cada 100mil habitantes") 
 
   
@@ -340,23 +387,21 @@ for(x in grp_names){
                   rename('Municipio Residencia' = MUNICIPIO_RES)
   
   #### FOR PLOTS OF POSITIVOS, PENDIENTES Y MUERTES
-  ans.tmp <- dtagrp %>% group_by(`FECHA_INGRESO`) %>%
+  ans.tmp <- dtagrp %>% group_by(`FECHA_SINTOMAS`) %>%
       summarise("Nuevos Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
                 "Nuevos No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
                 "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"))
-  ans.tmp <- left_join(dta.blank, ans.tmp, by="FECHA_INGRESO") %>%
+  ans.tmp <- left_join(dta.blank, ans.tmp, by="FECHA_SINTOMAS") %>%
                 left_join(tbl.nuevosdece[[x]] %>% 
-                            dplyr::select(-c(`grp`)), by = "FECHA_INGRESO")
+                            dplyr::select(-c(`grp`)), by = "FECHA_SINTOMAS")
   ans.tmp[is.na(ans.tmp)] <- 0
   
   ans.tmp <- ans.tmp %>%  mutate("Total Positivo" = cumsum(`Nuevos Positivo`),
               "Total No Positivo" = cumsum(`Nuevos No Positivo`),
               "Total Pendientes" = cumsum(`Pendientes`),
-              "Total Decesos" = cumsum(`Nuevos Decesos`),
-              "Nuevas Pruebas" = `Nuevos Positivo` + `Nuevos No Positivo` +
-                                       `Pendientes`)
+              "Total Decesos" = cumsum(`Nuevos Decesos`))
   
-  tbl.resultado[[x]] <- ans.tmp
+  tbl.resultado[[x]] <- ans.tmp %>% filter(`FECHA_SINTOMAS` >= "2020-03-01")
   
   #### FOR JOINT GRAPHS OF CASES
   tbl.restmp <- tbl.resultado[[x]] %>% gather(Tipo, Cantidad, 
@@ -367,39 +412,46 @@ for(x in grp_names){
   plot.casesnew[[x]] <- tbl.restmp %>% filter(`Tipo` %in% 
                                c("Nuevos Positivo", "Nuevos Decesos",
                                  "Pendientes")) %>%
-                      ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
+                      ggplot(aes(x = `FECHA_SINTOMAS`, y = `Cantidad`,
                                  grp = `Tipo`, color = `Tipo`)) +
                         geom_line() + 
                         geom_point(aes(text = paste(`Cantidad`, 
                                `Tipo`, 'en',
-                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                              format(`FECHA_SINTOMAS`, "%d/%m")))) + 
                         theme_bw() + 
                         theme(legend.title = element_blank()) +
                         scale_color_manual(values = c("darkblue","yellow4",
                                                       "red")) + 
-                        xlab("Fecha de Ingreso/Fecha de Muerte") + 
+                        xlab("Fecha de Inicio Síntomas/Fecha de Deceso") + 
                         ylab("Nuevos Casos") 
   
   ## Make Plot of Total Positive Cases
     plot.casestotal[[x]] <- tbl.restmp %>% filter(`Tipo` %in% 
                                c("Total Positivo", "Total Decesos",
                                  "Total Pendientes")) %>%
-                      ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
+                      ggplot(aes(x = `FECHA_SINTOMAS`, y = `Cantidad`,
                                  grp = `Tipo`, color = `Tipo`)) +
                         geom_line() + 
                         geom_point(aes(text = paste(`Cantidad`, 
                                `Tipo`, 'hasta',
-                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                              format(`FECHA_SINTOMAS`, "%d/%m")))) + 
                         theme_bw() + 
                         theme(legend.title = element_blank()) +
                         scale_color_manual(values = c("darkblue","yellow4",
                                                       "red")) + 
-                        xlab("Fecha de Ingreso/Fecha de Muerte") + 
+                        xlab("Fecha de Inicio Síntomas/Fecha de Deceso") + 
                         ylab("Total Casos") 
     
     
     #### Make Plot for Pruebas/Casos por Dia
-    plot.pruebasnew[[x]] <- tbl.resultado[[x]] %>%
+    ans.tmp2 <- dtagrp %>% group_by(`FECHA_INGRESO`) %>%
+      summarise("Nuevos Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
+                "Nuevos No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
+                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente")) %>%
+      mutate("Nuevas Pruebas" = `Nuevos Positivo` + `Nuevos No Positivo` +
+                                       `Pendientes`)
+    
+    plot.pruebasnew[[x]] <- ans.tmp2 %>%
                       ggplot(aes(x = `FECHA_INGRESO`, y = `Nuevas Pruebas`)) +
                         geom_line(color = "darkblue") + 
                         geom_point(color = "darkblue",
@@ -433,17 +485,17 @@ for(x in grp_names){
     ## Make Plot of Tasa Positividad/Letalidad
     plot.tasatotal[[x]] <-  tbl.tasatmp %>%  filter(`Tasa` %in% 
                                c("Tasa Positividad", "Tasa Letalidad")) %>%
-                            ggplot(aes(x = `FECHA_INGRESO`, y = `Cantidad`,
+                            ggplot(aes(x = `FECHA_SINTOMAS`, y = `Cantidad`,
                                    grp = `Tasa`, color = `Tasa`)) +
                         geom_line() + 
                         geom_point(aes(text = paste(`Tasa`, 'es',
                                              round(100*`Cantidad`, 2), '% hasta',
-                              format(`FECHA_INGRESO`, "%d/%m")))) + 
+                              format(`FECHA_SINTOMAS`, "%d/%m")))) + 
                         theme_bw() + 
                         theme(legend.title = element_blank()) +
                         scale_color_manual(values = c("darkblue","red", 
                                                       "orange")) + 
-                        xlab("Fecha de Ingreso/Fecha de Fallecimiento") + 
+                        xlab("Fecha de Inicio Síntomas/Fecha de Deceso") + 
                         ylab("Tasa de Positividad y Letalidad") 
     
     
@@ -761,37 +813,29 @@ for(x in grp_names){
 ```
 
 ```{r eval=FALSE}
-  date.first <- as.Date("2020-04-14")
+  date.first <- as.Date("2020-01-01")
   date.last <- as.Date("2020-04-28")
   dta.blank <- data.frame("FECHA_SINTOMAS" = seq(date.first, date.last, 1))
   
   dtagrp <- dta_split$Yucatán %>% filter(`FECHA_SINTOMAS` <= date.last &
-                                         `FECHA_SINTOMAS` > date.first)
+                                         `FECHA_SINTOMAS` >= date.first)
               
 
-   ans.tmp <- dtagrp %>% group_by(`FECHA_SINTOMAS`) %>%
-      summarise("Nuevos Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
-                "Nuevos No Positivo" = sum(`RESULTADO` == "No positivo SARS-CoV-2"),
-                "Pendientes" = sum(`RESULTADO` == "Resultado pendiente"))
-  ans.tmp <- left_join(dta.blank, ans.tmp, by="FECHA_SINTOMAS") #%>%
-                #left_join(tbl.nuevosdece[[x]] %>% 
-                 #           dplyr::select(-c(`grp`)), by = "FECHA_SINTOMAS")
-  ans.tmp[is.na(ans.tmp)] <- 0
+  ans.tmp <- dtagrp %>% group_by(`FECHA_SINTOMAS`) %>%
+      summarise("Nuevos Positivo Hosp" = sum(`RESULTADO` == "Positivo SARS-CoV-2" &
+                                               `TIPO_PACIENTE` == "HOSPITALIZADO"),
+                "Nuevos Positivo Ambu" = sum(`RESULTADO` == "Positivo SARS-CoV-2" &
+                                               `TIPO_PACIENTE` == "AMBULATORIO")) %>%
+      mutate("Total Positivo Hosp" = cumsum(`Nuevos Positivo Hosp`),
+             "Total Positivo Ambu" = cumsum(`Nuevos Positivo Ambu`))
   
-  ans.tmp <- ans.tmp %>%  mutate("Total Positivo" = cumsum(`Nuevos Positivo`),
-              "Total No Positivo" = cumsum(`Nuevos No Positivo`),
-              "Total Pendientes" = cumsum(`Pendientes`),
-              #"Total Decesos" = cumsum(`Nuevos Decesos`),
-              "Nuevas Pruebas" = `Nuevos Positivo` + `Nuevos No Positivo` +
-                                       `Pendientes`)
-  
-  tbl.restmp <- ans.tmp %>% gather(Tipo, Cantidad, 
-                                        "Nuevos Positivo":"Nuevas Pruebas",
+  tbl.restmp <- ans.tmp %>% filter(`FECHA_SINTOMAS` > "2020-04-14" ) %>% 
+                                gather(Tipo, Cantidad, 
+                                        "Nuevos Positivo Hosp":"Total Positivo Ambu",
                                         factor_key = T)
   
   p <- tbl.restmp %>% filter(`Tipo` %in% 
-                               c("Nuevos Positivo", "Nuevos Decesos",
-                                 "Pendientes")) %>%
+                               c("Nuevos Positivo Hosp", "Nuevos Positivo Ambu")) %>%
                       ggplot(aes(x = `FECHA_SINTOMAS`, y = `Cantidad`,
                                  grp = `Tipo`, color = `Tipo`)) +
                         geom_line() + 
@@ -806,8 +850,8 @@ for(x in grp_names){
                         ylab("Nuevos Casos") 
 
   p2 <- tbl.restmp %>% filter(`Tipo` %in% 
-                               c("Total Positivo", "Nuevos Decesos",
-                                 "Total Pendientes")) %>%
+                               c(#"Total Positivo Ambu", 
+                                 "Total Positivo Hosp")) %>%
                       ggplot(aes(x = `FECHA_SINTOMAS`, y = `Cantidad`,
                                  grp = `Tipo`, color = `Tipo`)) +
                         geom_line() + 
@@ -819,8 +863,14 @@ for(x in grp_names){
                         scale_color_manual(values = c("darkblue","yellow4",
                                                       "red")) + 
                         xlab("Fecha de Inicio Sintomas") + 
-                        ylab("Nuevos Casos") +
+                        ylab("Total Casos") +
                         geom_smooth(formula = y~x, se=FALSE, method = "lm")
+  
+xx <- tbl.restmp %>% filter(`Tipo` == "Total Positivo Hosp")
+xx <- tbl.restmp %>% filter(`Tipo` == "Total Positivo Ambu")
+xx$Cantidad[2:14]/xx$Cantidad[1:13]
+  
+lm(Cantidad~FECHA_SINTOMAS, data=subset(tbl.restmp, Tipo == "Total Positivo Hosp"))
   
 ```
 

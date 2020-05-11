@@ -323,8 +323,8 @@ plot.actcompstatetasa[["Nacional"]] <- tbl.compstatetmp %>%
                       ggplot(aes(x = `FECHA_SINTOMAS`, y = `Tasa Activos`,
                                  grp = `grp`, color = `grp`)) +
                         geom_line() +
-                        geom_point(aes(text = paste(`Total Activos`, 
-                               'casos activos en', `grp`, 'hasta',
+                        geom_point(aes(text = paste(`Tasa Activos`, 
+                               'tasa de incidencia en', `grp`, 'hasta',
                               format(`FECHA_SINTOMAS`, "%d/%m")))) + 
                         theme_bw() + 
                         theme(legend.title = element_blank()) +

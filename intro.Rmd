@@ -14,7 +14,7 @@ cat("\n\n <div style='margin-bottom:350px;'> </div> \n\n")
     
 cat(paste("## Gráfica Comparativa de Tasa de Incidencia según Casos Activos (por cada 100mil hab) \n\n"))
 cat("\n\n")
-htmltools::tagList( ggplotly(plot.poscompstatetasa[[x]], tooltip = "text",
+htmltools::tagList( ggplotly(plot.actcompstatetasa[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
                       layout(height = 720, legend = 
                               list(orientation = "h", y=-0.2) )) 

@@ -52,9 +52,11 @@ vrepl <- function(x, list, values){
 
 Este sitio web tiene el objetivo de brindar un fácil acceso a la información de los casos de COVID-19 en México, tanto a nivel federal como estatal. La fuente de estos datos son los [Datos Abiertos](https://www.gob.mx/salud/documentos/datos-abiertos-152127?idiom=es) puestos a disposición de la población en general por la Dirección General de Epidemiología de la Secretaría de Salud de México.
 
-Intentaré actualizar este sitio web diariamente, usando datos actualizados y agregando nuevas gráficas y tablas.
+Actualizaré este sitio web diariamente, agregando los datos actualizados de cada día y añadiendo nuevas gráficas y tablas.
 
 Y recuerda, **¡si tu puedes, quédate en casa!**
+
+*Créditos a [Diana Vega](https://www.instagram.com/shuguitubbie_art) (Shugui) por el diseño del Favicon*
 
 
 ```{r readcleandata}
@@ -813,6 +815,31 @@ for(x in grp_names){
 ```
 
 ```{r eval=FALSE}
+
+kk <- tbl.resultado$Yucatán %>% #filter(`FECHA_SINTOMAS` <= "2020-05-05") %>%
+          gather(Tipo, Cantidad, "Nuevos Positivo":"Total Decesos",
+                                        factor_key = T)
+
+tbl.kk <- kk %>% filter(`Tipo` %in% c("Nuevos Positivo", "Pendientes") )
+    
+plot.kk <- tbl.kk %>% ggplot(aes(x = `FECHA_SINTOMAS`, 
+                                                 y = `Cantidad`, 
+                                                 fill = `Tipo`)) +
+              geom_col(position = position_stack(reverse = TRUE)) +
+              ggtitle("Yucatán") +
+  
+  
+             #     geom_bar(stat = "identity", 
+            #                      aes(text = paste(`Cantidad`, 
+            #                      " decesos entre ",  `FECHA_SINTOMAS`, 
+            #                      " años ","(", `Cantidad`, "%)",
+            #                                  sep=""))) +
+                  theme_bw()  +
+                  scale_fill_brewer(palette = "Dark2") +
+                  xlab("Fecha Inicio Síntomas") + 
+                  ylab("Número de Casos") 
+
+
   date.first <- as.Date("2020-01-01")
   date.last <- as.Date("2020-04-28")
   dta.blank <- data.frame("FECHA_SINTOMAS" = seq(date.first, date.last, 1))

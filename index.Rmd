@@ -50,6 +50,10 @@ vrepl <- function(x, list, values){
 
 # Intro 
 
+```{r fig.align='center', echo=FALSE, out.width = "12.5%"}
+knitr::include_graphics('coronapic.png', dpi = NA)
+```
+
 Este sitio web tiene el objetivo de brindar un fácil acceso a la información de los casos de COVID-19 en México, tanto a nivel federal como estatal. La fuente de estos datos son los [Datos Abiertos](https://www.gob.mx/salud/documentos/datos-abiertos-152127?idiom=es) puestos a disposición de la población en general por la Dirección General de Epidemiología de la Secretaría de Salud de México.
 
 Actualizaré este sitio web diariamente, agregando los datos actualizados de cada día y añadiendo nuevas gráficas y tablas.

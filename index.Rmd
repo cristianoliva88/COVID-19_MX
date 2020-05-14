@@ -65,7 +65,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200512COVID19MEXICO.csv")
+dta <- read_csv("Data/200513COVID19MEXICO.csv")
 
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -820,7 +820,7 @@ for(x in grp_names){
 
 ```{r eval=FALSE}
 
-kk <- tbl.resultado$Yucatán %>% #filter(`FECHA_SINTOMAS` <= "2020-05-05") %>%
+kk <- tbl.resultado$Yucatán %>%# filter(`FECHA_SINTOMAS` <= Sys.Date() - 5 ) %>%
           gather(Tipo, Cantidad, "Nuevos Positivo":"Total Decesos",
                                         factor_key = T)
 
@@ -831,17 +831,28 @@ plot.kk <- tbl.kk %>% ggplot(aes(x = `FECHA_SINTOMAS`,
                                                  fill = `Tipo`)) +
               geom_col(position = position_stack(reverse = TRUE)) +
               ggtitle("Yucatán") +
-  
-  
-             #     geom_bar(stat = "identity", 
-            #                      aes(text = paste(`Cantidad`, 
-            #                      " decesos entre ",  `FECHA_SINTOMAS`, 
-            #                      " años ","(", `Cantidad`, "%)",
-            #                                  sep=""))) +
                   theme_bw()  +
                   scale_fill_brewer(palette = "Dark2") +
                   xlab("Fecha Inicio Síntomas") + 
                   ylab("Número de Casos") 
+
+
+tbl.time2deathtmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2") %>%
+                          mutate("Diasparadeceso" = `FECHA_INGRESO` - `FECHA_SINTOMAS`) %>%
+                          group_by(`Diasparadeceso`) %>%
+                          summarise("Casos" = n()) %>%  ungroup() %>%
+                    mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2))
+    
+plot.kk2<- tbl.time2deathtmp %>% ggplot(aes(x = `Diasparadeceso`,
+                                                             y = `Casos`)) +
+                  geom_bar(stat = "identity", fill = "darkblue",
+                                 aes(text = paste(`Casos`, " fallecieron en ",`Diasparadeceso`, 
+                                  " dias ", "(", `Porcentaje`, "%)", sep=""))) +
+                  theme_bw() +
+                  xlab("Días entre inicio de síntomas y deceso") + 
+                  ylab("Número de Casos")
+
+sum(tbl.time2deathtmp$Porcentaje[1:6])
 
 
   date.first <- as.Date("2020-01-01")

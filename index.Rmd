@@ -65,7 +65,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200515COVID19MEXICO.csv")
+dta <- read_csv("Data/200516COVID19MEXICO.csv")
 
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -820,7 +820,7 @@ for(x in grp_names){
 
 ```{r eval=FALSE}
 
-kk <- tbl.resultado$Yucatán %>% #filter(`FECHA_SINTOMAS` <= Sys.Date() - 5 ) %>%
+kk <- tbl.resultado$Yucatán %>%# filter(`FECHA_SINTOMAS` <= Sys.Date() - 5 ) %>%
           gather(Tipo, Cantidad, "Nuevos Positivo":"Total Decesos",
                                         factor_key = T)
 

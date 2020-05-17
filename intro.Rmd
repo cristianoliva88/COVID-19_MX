@@ -92,7 +92,7 @@ cat("\n\n")
 
 
 cat(paste("## Gráfica de Nuevos Casos \n\n"))
-cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de ingreso del caso. Los decesos son contabilizados respecta a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
+cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de inicio de síntomas de la persona. Los decesos son contabilizados respecto a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
 htmltools::tagList( ggplotly(plot.casesnew[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v",
@@ -101,7 +101,7 @@ htmltools::tagList( ggplotly(plot.casesnew[[x]], tooltip = "text",
 cat("\n\n")
 
 cat(paste("## Gráfica de Acumulado de Casos \n\n"))
-cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de ingreso del caso. Los decesos son contabilizados respecta a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
+cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de inicio de síntomas de la persona. Los decesos son contabilizados respecto a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
 htmltools::tagList( ggplotly(plot.casestotal[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v",
@@ -272,14 +272,14 @@ for(x in grp_names_state){
 
   cat("\n\n")    
   cat(paste("## Gráfica de Nuevos Casos \n\n"))
-  cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de ingreso del caso. Los decesos son contabilizados respecta a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
+  cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de inicio de síntomas de la persona. Los decesos son contabilizados respecto a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
 
   print(htmltools::tagList( ggplotly(plot.casesnew[[x]], tooltip = "text",
                                      dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v", x = 0)) ))
   
   cat("## Gráfica de Acumulado de Casos \n\n")
-  cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de ingreso del caso. Los decesos son contabilizados respecta a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
+  cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de inicio de síntomas de la persona. Los decesos son contabilizados respecto a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
   print(htmltools::tagList( ggplotly(plot.casestotal[[x]], tooltip = "text",
                                      dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v", x = 0)) ))

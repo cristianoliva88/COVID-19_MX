@@ -65,7 +65,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200706COVID19MEXICO.csv")
+dta <- read_csv("Data/200707COVID19MEXICO.csv")
 
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -834,6 +834,19 @@ plot.kk <- tbl.kk %>% ggplot(aes(x = `FECHA_SINTOMAS`,
                   scale_fill_brewer(palette = "Dark2") +
                   xlab("Fecha Inicio Síntomas") + 
                   ylab("Número de Casos") 
+
+library(zoo)
+pp <- tbl.kk %>% filter(`Tipo` == "Nuevos Positivo") %>% 
+            filter(`FECHA_SINTOMAS` <= Sys.Date() - 7 ) %>%
+            mutate(`Promedio Movil` = rollmean(`Cantidad`, k=5, fill=NA))
+plot.pp <- pp %>% ggplot(aes(x = `FECHA_SINTOMAS`, 
+                                                 y = `Promedio Movil`)) +
+              geom_point() + geom_line() +
+              ggtitle("Yucatán") +
+                  theme_bw()  +
+                  scale_fill_brewer(palette = "Dark2") +
+                  xlab("Fecha Inicio Síntomas") + 
+                  ylab("Promedio Movil: # de Casos Confirmados") 
 
 
 tbl.time2deathtmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2") %>%

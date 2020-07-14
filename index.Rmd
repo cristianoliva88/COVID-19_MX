@@ -65,7 +65,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200712COVID19MEXICO.csv")
+dta <- read_csv("Data/200713COVID19MEXICO.csv")
   
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -206,6 +206,7 @@ tbl.percintubcomorb <- NULL
 plot.casesnew <- NULL
 plot.casestotal <- NULL
 plot.pruebasnew <- NULL
+plot.pospen <- NULL
 plot.tasatotal <- NULL
 plot.sector <- NULL
 plot.possex <- NULL
@@ -448,7 +449,29 @@ for(x in grp_names){
                         xlab("Fecha de Inicio Síntomas/Fecha de Deceso") + 
                         ylab("Total Casos") 
     
+    ## Make Plot of Total + Suspects
+    tbl.pospen <- tbl.resultado[[x]] %>% filter(`FECHA_SINTOMAS` <= Sys.Date() - 5 ) %>%
+                gather(Tipo, Cantidad, "Nuevos Positivo":"Total Decesos",
+                                          factor_key = T) %>%
+                filter(`Tipo` %in% c("Nuevos Positivo", "Pendientes") )
     
+    plot.pospen[[x]] <- tbl.pospen %>% ggplot(aes(x = `FECHA_SINTOMAS`, 
+                                                 y = `Cantidad`
+                                                # fill = `Tipo`
+                                         )) +
+                geom_col(position = position_stack(reverse = TRUE),
+                # geom_bar(stat = "identity",  position = "stack",
+                          aes(fill = `Tipo`, text = paste(`Cantidad`, 
+                               `Tipo`, 'en',
+                              format(`FECHA_SINTOMAS`, "%d/%m")))) +
+                    #geom_point() + 
+                        theme_bw() + 
+                        theme(legend.title = element_blank()) +
+                        scale_fill_brewer(palette = "Dark2") +
+                        xlab("Fecha Inicio Síntomas") + 
+                        ylab("Número de Casos") 
+
+
     #### Make Plot for Pruebas/Casos por Dia
     ans.tmp2 <- dtagrp %>% group_by(`FECHA_INGRESO`) %>%
       summarise("Nuevos Positivo" = sum(`RESULTADO` == "Positivo SARS-CoV-2"),
@@ -849,82 +872,67 @@ plot.pp <- pp %>% ggplot(aes(x = `FECHA_SINTOMAS`,
                   ylab("Promedio Movil: # de Casos Confirmados") 
 
 
-tbl.time2deathtmp <- dtagrp %>% filter(`RESULTADO` == "Positivo SARS-CoV-2") %>%
-                          mutate("Diasparadeceso" = `FECHA_INGRESO` - `FECHA_SINTOMAS`) %>%
-                          group_by(`Diasparadeceso`) %>%
-                          summarise("Casos" = n()) %>%  ungroup() %>%
-                    mutate("Porcentaje" = round(100*`Casos`/sum(`Casos`), 2))
-    
-plot.kk2<- tbl.time2deathtmp %>% ggplot(aes(x = `Diasparadeceso`,
-                                                             y = `Casos`)) +
-                  geom_bar(stat = "identity", fill = "darkblue",
-                                 aes(text = paste(`Casos`, " fallecieron en ",`Diasparadeceso`, 
-                                  " dias ", "(", `Porcentaje`, "%)", sep=""))) +
+#### Plot incidence rate with all states (smoothed)
+library(zoo)
+library(scales)
+
+abbr <- c("AGU", "BCN", "BCS", "CAM", "CHP", "CHH", "CMX", "COA",
+          "COL", "DUR", "GUA", "GRO", "HID", "JAL", "MEX", "MIC",
+          "MOR", "MX", "NAY", "NLE", "OAX", "PUE", "QUE", "ROO", "SLP",
+          "SIN", "SON", "TAB", "TAM", "TLA", "VER", "YUC", "ZAC")
+
+tbl.kk <- tbl.compstatetmp %>% 
+            filter(`FECHA_SINTOMAS` <= Sys.Date() - 7) %>%
+            group_by(`grp`) %>%
+            mutate("Promedio Movil Tasa Nuevos Positivos" = 
+                    rollmean(`Nuevos Positivo`/`POBLACION_ENT`, k = 5, fill = NA),
+                   "Tasa Pendientes" = `Pendientes`/`POBLACION_ENT`) %>%
+            ungroup()
+
+len <- dim(tbl.kk)[1]/33
+tbl.kk <- tbl.kk %>% mutate(grp2 =  rep(abbr, each=len))
+
+colors <- c("Nuevos Positivo" = "darkblue", "Pendientes" = "yellow4")
+plot.kk <- tbl.kk %>% filter(grp != "Nacional") %>%
+              ggplot(aes(x = `FECHA_SINTOMAS`)) +
+              #geom_point() + 
+              geom_line(aes(y = `Promedio Movil Tasa Nuevos Positivos`, 
+                          color= "Nuevos Positivo")) + 
+              geom_line(aes(y = `Tasa Pendientes`, color ="Pendientes")) +
+              facet_wrap(~grp2, nrow=4) +
+              ggtitle("Nuevos Casos Positivos COVID-19 en México") +
+              scale_x_date(date_minor_breaks = "1 month") +
                   theme_bw() +
-                  xlab("Días entre inicio de síntomas y deceso") + 
-                  ylab("Número de Casos")
+                  scale_fill_brewer(palette = "Dark2") +
+                  xlab("Fecha de Inicio Síntomas") + 
+                  ylab("# de Casos por cada 100k hab") +
+              labs(color = "") + scale_color_manual(values = colors) +
+              theme(legend.position = "bottom",
+                    axis.text.x = element_text(size=7))
 
-sum(tbl.time2deathtmp$Porcentaje[1:6])
 
+library(grid)
+g <- grid.force(ggplotGrob(plot.kk))
+# Get the names of grobs and their gPaths into a data.frame structure
+grobs_df <- do.call(cbind.data.frame, grid.ls(g, print = FALSE))
+# Build optimal gPaths that will be later used to identify grobs and edit them
+grobs_df$gPath_full <- paste(grobs_df$gPath, grobs_df$name, sep = "::")
+grobs_df$gPath_full <- gsub(pattern = "layout::", 
+                            replacement = "", 
+                            x = grobs_df$gPath_full, 
+                            fixed = TRUE)
+strip_bg_gpath <- grobs_df$gPath_full[grepl(pattern = ".*strip\\.background.*", 
+                                            x = grobs_df$gPath_full)]
+strip_bg_gpath[1] # example of a gPath for strip background 
+n_cols <- length(strip_bg_gpath)
+fills <- rep("white", 32) #rep(c(rep("seagreen",3), rep("white",2), rep("red3",3)), 4)
 
-  date.first <- as.Date("2020-01-01")
-  date.last <- as.Date("2020-04-28")
-  dta.blank <- data.frame("FECHA_SINTOMAS" = seq(date.first, date.last, 1))
-  
-  dtagrp <- dta_split$Yucatán %>% filter(`FECHA_SINTOMAS` <= date.last &
-                                         `FECHA_SINTOMAS` >= date.first)
-              
+# Edit the grobs
+for (i in 1:length(strip_bg_gpath)){
+  g <- editGrob(grob = g, gPath = strip_bg_gpath[i], gp = gpar(fill = fills[i]))
+}
 
-  ans.tmp <- dtagrp %>% group_by(`FECHA_SINTOMAS`) %>%
-      summarise("Nuevos Positivo Hosp" = sum(`RESULTADO` == "Positivo SARS-CoV-2" &
-                                               `TIPO_PACIENTE` == "HOSPITALIZADO"),
-                "Nuevos Positivo Ambu" = sum(`RESULTADO` == "Positivo SARS-CoV-2" &
-                                               `TIPO_PACIENTE` == "AMBULATORIO")) %>%
-      mutate("Total Positivo Hosp" = cumsum(`Nuevos Positivo Hosp`),
-             "Total Positivo Ambu" = cumsum(`Nuevos Positivo Ambu`))
-  
-  tbl.restmp <- ans.tmp %>% filter(`FECHA_SINTOMAS` > "2020-04-14" ) %>% 
-                                gather(Tipo, Cantidad, 
-                                        "Nuevos Positivo Hosp":"Total Positivo Ambu",
-                                        factor_key = T)
-  
-  p <- tbl.restmp %>% filter(`Tipo` %in% 
-                               c("Nuevos Positivo Hosp", "Nuevos Positivo Ambu")) %>%
-                      ggplot(aes(x = `FECHA_SINTOMAS`, y = `Cantidad`,
-                                 grp = `Tipo`, color = `Tipo`)) +
-                        geom_line() + 
-                        geom_point(aes(text = paste(`Cantidad`, 
-                               `Tipo`, 'en',
-                              format(`FECHA_SINTOMAS`, "%d/%m")))) + 
-                        theme_bw() + 
-                        theme(legend.title = element_blank()) +
-                        scale_color_manual(values = c("darkblue","yellow4",
-                                                      "red")) + 
-                        xlab("Fecha de Inicio Sintomas") + 
-                        ylab("Nuevos Casos") 
-
-  p2 <- tbl.restmp %>% filter(`Tipo` %in% 
-                               c(#"Total Positivo Ambu", 
-                                 "Total Positivo Hosp")) %>%
-                      ggplot(aes(x = `FECHA_SINTOMAS`, y = `Cantidad`,
-                                 grp = `Tipo`, color = `Tipo`)) +
-                        geom_line() + 
-                        geom_point(aes(text = paste(`Cantidad`, 
-                               `Tipo`, 'en',
-                              format(`FECHA_SINTOMAS`, "%d/%m")))) + 
-                        theme_bw() + 
-                        theme(legend.title = element_blank()) +
-                        scale_color_manual(values = c("darkblue","yellow4",
-                                                      "red")) + 
-                        xlab("Fecha de Inicio Sintomas") + 
-                        ylab("Total Casos") +
-                        geom_smooth(formula = y~x, se=FALSE, method = "lm")
-  
-xx <- tbl.restmp %>% filter(`Tipo` == "Total Positivo Hosp")
-xx <- tbl.restmp %>% filter(`Tipo` == "Total Positivo Ambu")
-xx$Cantidad[2:14]/xx$Cantidad[1:13]
-  
-lm(Cantidad~FECHA_SINTOMAS, data=subset(tbl.restmp, Tipo == "Total Positivo Hosp"))
+grid.draw(g)
   
 ```
 

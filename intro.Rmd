@@ -90,7 +90,6 @@ ktbl <- tbl.pais[[x]] %>%
 
 cat("\n\n")  
 
-
 cat(paste("## Gráfica de Nuevos Casos \n\n"))
 cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de inicio de síntomas de la persona. Los decesos son contabilizados respecto a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
 htmltools::tagList( ggplotly(plot.casesnew[[x]], tooltip = "text",
@@ -100,9 +99,18 @@ htmltools::tagList( ggplotly(plot.casesnew[[x]], tooltip = "text",
 
 cat("\n\n")
 
-cat(paste("## Gráfica de Acumulado de Casos \n\n"))
-cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de inicio de síntomas de la persona. Los decesos son contabilizados respecto a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
-htmltools::tagList( ggplotly(plot.casestotal[[x]], tooltip = "text",
+#cat(paste("## Gráfica de Acumulado de Casos \n\n"))
+#cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de inicio de síntomas de la persona. Los decesos son contabilizados respecto a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
+#htmltools::tagList( ggplotly(plot.casestotal[[x]], tooltip = "text",
+#                             dynamicTicks = TRUE) %>%
+#                        layout(legend = list(orientation = "v",
+#                                             x = 0)) )
+
+#cat("\n\n")
+
+cat(paste("## Gráfica de Nuevos + Pendientes \n\n"))
+cat("\n\n")
+htmltools::tagList( ggplotly(plot.pospen[[x]], tooltip = "text",
                              dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v",
                                              x = 0)) )
@@ -278,12 +286,21 @@ for(x in grp_names_state){
                                      dynamicTicks = TRUE) %>%
                         layout(legend = list(orientation = "v", x = 0)) ))
   
-  cat("## Gráfica de Acumulado de Casos \n\n")
-  cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de inicio de síntomas de la persona. Los decesos son contabilizados respecto a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
-  print(htmltools::tagList( ggplotly(plot.casestotal[[x]], tooltip = "text",
-                                     dynamicTicks = TRUE) %>%
-                        layout(legend = list(orientation = "v", x = 0)) ))
+#  cat("## Gráfica de Acumulado de Casos \n\n")
+#  cat("Los casos positivos y pendientes son contabilizados respecto a la fecha de inicio de   síntomas de la persona. Los decesos son contabilizados respecto a la fecha de fallecimiento. **Importante**: los casos positivos son confirmados varios días después de que fueron infectados, lo cual significa que algunos de los casos pendientes actuales se 'convertirán' en casos positivos. \n\n")
+#  print(htmltools::tagList( ggplotly(plot.casestotal[[x]], tooltip = "text",
+#                                     dynamicTicks = TRUE) %>%
+#                        layout(legend = list(orientation = "v", x = 0)) ))
   
+  cat(paste("## Gráfica de Nuevos + Pendientes \n\n"))
+  cat("\n\n")
+  print(htmltools::tagList( ggplotly(plot.pospen[[x]], tooltip = "text",
+                             dynamicTicks = TRUE) %>%
+                        layout(legend = list(orientation = "v",
+                                             x = 0)) ) )
+
+  cat("\n\n")
+
   cat(paste("## Gráfica de Casos Positivos por Edad/Sexo \n\n"))
   cat("\n\n")
   print(htmltools::tagList( ggplotly(plot.possex[[x]], tooltip = "text",

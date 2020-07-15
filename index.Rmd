@@ -65,7 +65,7 @@ Y recuerda, **¡si tu puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200713COVID19MEXICO.csv")
+dta <- read_csv("Data/200714COVID19MEXICO.csv")
   
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -842,22 +842,6 @@ for(x in grp_names){
 ```
 
 ```{r eval=FALSE}
-kk <- tbl.resultado$Yucatán %>% #filter(`FECHA_SINTOMAS` <= Sys.Date() - 5 ) %>%
-          gather(Tipo, Cantidad, "Nuevos Positivo":"Total Decesos",
-                                        factor_key = T)
-
-tbl.kk <- kk %>% filter(`Tipo` %in% c("Nuevos Positivo", "Pendientes") )
-    
-plot.kk <- tbl.kk %>% ggplot(aes(x = `FECHA_SINTOMAS`, 
-                                                 y = `Cantidad`, 
-                                                 fill = `Tipo`)) +
-              geom_col(position = position_stack(reverse = TRUE)) +
-              ggtitle("Yucatán") +
-                  theme_bw()  +
-                  scale_fill_brewer(palette = "Dark2") +
-                  xlab("Fecha Inicio Síntomas") + 
-                  ylab("Número de Casos") 
-
 library(zoo)
 pp <- tbl.kk %>% filter(`Tipo` == "Nuevos Positivo") %>% 
             filter(`FECHA_SINTOMAS` <= Sys.Date() - 7 ) %>%

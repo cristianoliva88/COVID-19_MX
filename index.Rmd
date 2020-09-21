@@ -54,18 +54,18 @@ vrepl <- function(x, list, values){
 knitr::include_graphics('coronapic.png', dpi = NA)
 ```
 
-Este sitio web tiene el objetivo de brindar un fácil acceso a la información de los casos de COVID-19 en México, tanto a nivel federal como estatal. La fuente de estos datos son los [Datos Abiertos](https://www.gob.mx/salud/documentos/datos-abiertos-152127?idiom=es) puestos a disposición de la población en general por la Dirección General de Epidemiología de la Secretaría de Salud de México.
+Este sitio web fue creado con el objetivo de brindar un fácil acceso a la información de los casos de COVID-19 en México, tanto a nivel federal como estatal. La fuente de estos datos son los [Datos Abiertos](https://www.gob.mx/salud/documentos/datos-abiertos-152127?idiom=es) puestos a disposición de la población en general por la Dirección General de Epidemiología de la Secretaría de Salud de México.
 
-Actualizaré este sitio web diariamente, agregando los datos actualizados de cada día y añadiendo nuevas gráficas y tablas.
+A partir de Septiembre, estaré actualizando este sitio cada domingo.
 
-Y recuerda, **¡si tu puedes, quédate en casa!**
+Recuerda, **¡si puedes, quédate en casa!**
 
 *Créditos a [Diana Vega](https://www.instagram.com/shuguitubbie_art) (Shugui) por el diseño del Favicon*
 
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/200914COVID19MEXICO.csv")
+dta <- read_csv("Data/200920COVID19MEXICO.csv")
   
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,

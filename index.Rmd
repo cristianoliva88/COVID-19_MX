@@ -65,7 +65,7 @@ Recuerda, **¡si puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/201004COVID19MEXICO.csv")
+dta <- read_csv("Data/201010COVID19MEXICO.csv")
   
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
@@ -107,7 +107,7 @@ dta <- dta %>% mutate("NACIONALIDAD" = vrepl(`NACIONALIDAD`,
 
 ## Replace values of RESULTADO
 dta.resultado <- read_excel(filenm.catalogs, "Catálogo RESULTADO")
-dta <- dta %>% mutate("RESULTADO" = vrepl(`RESULTADO`,
+dta <- dta %>% mutate("RESULTADO" = vrepl(`RESULTADO_LAB`,
                                         dta.resultado$CLAVE,
                                         dta.resultado$DESCRIPCIÓN) )
 

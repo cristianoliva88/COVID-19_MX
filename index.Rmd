@@ -13,7 +13,7 @@ fontsize: 11pt
 #graphics: yes
 #github-repo: rstudio/bookdown-demo
 description: "Análisis en Tiempo Real de Casos de COVID-19 en México con base en los Datos Abiertos de la Secretaría de Salud. El COVID-19 es la enfermedad causada por el nuevo coronavirus SARS-CoV-2. Autor: Cristian Oliva Avilés"
-url: 'https\://casoscovidmx.com/'
+url: 'https://cristianoliva88.github.io/COVID-19_MX/'
 favicon: "coronapic.png"
 cover-image: images/tasaincidencia2.png
 apple-touch-icon: "coronapic.png"
@@ -65,7 +65,7 @@ Recuerda, **¡si puedes, quédate en casa!**
 
 ```{r readcleandata}
 ##### FIRST, READ DATA FILE WITH ALL CASES
-dta <- read_csv("Data/210515COVID19MEXICO.csv")
+dta <- read_csv("Data/210518COVID19MEXICO.csv")
   
 ## Create variable to define MUNICIPIOS
 dta <-  dta %>% mutate("MUNICIPIO_RES" = paste(`MUNICIPIO_RES`,
